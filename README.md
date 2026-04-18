@@ -11,8 +11,8 @@ Stack: **Electron + React 18 + Zustand** (editor) · **C + Open Watcom** (motor 
 |---|---|---|
 | Node.js | 18 LTS | |
 | npm | 9+ | incluido con Node |
-| Open Watcom | 2.0 | solo para compilar el motor DOS |
-| DOSBox-X | cualquier reciente | `mpu401=intelligent` para audio MIDI |
+| [Open Watcom](https://github.com/open-watcom/open-watcom-v2/releases/tag/Current-build) | 2.0 | solo para compilar el motor DOS |
+| [DOSBox-X](https://dosbox-x.com/) | cualquier reciente | `mpu401=intelligent` para audio MIDI |
 
 > El editor (Electron) no requiere Watcom. Solo es necesario para generar el `.EXE` del juego.
 
