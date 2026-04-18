@@ -3,6 +3,9 @@ node_modules/
 
 # Build / output
 .claude
+.vscode
+mcp-servers/
+documentation/
 game/
 git/
 out/

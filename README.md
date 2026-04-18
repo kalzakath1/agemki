@@ -1,4 +1,4 @@
-# AGEMKI — Adventure Game Engine Mark I
+# AGEMKI — Achus Game Engine Mark I
 
 Editor visual de aventuras gráficas estilo SCUMM para DOS.  
 Stack: **Electron + React 18 + Zustand** (editor) · **C + Open Watcom** (motor DOS) · Target: **486DX2@66MHz, 8 MB RAM, DOS4GW**
