@@ -99,16 +99,9 @@ agemki/
 │   └── renderer/       # UI React (editor visual)
 ├── resources/
 │   └── engine/         # motor C para DOS (wcc386)
-├── game/               # salida: GAME.EXE + GAME.DAT (generados, no en git)
-├── documentation/      # guías técnicas
-└── git/                # guía para subir a GitHub
+└── game/               # salida: GAME.EXE + GAME.DAT (generados, no en git)
 ```
 
 ---
 
-## Documentación
 
-- `documentation/CONTEXT7-AGEMKI.md` — arquitectura completa del motor
-- `documentation/AUDIO-GUIDE.md` — OPL2/OPL3/AWE32
-- `documentation/FETCH-SYSTEM.md` — Q&A rápido
-- `src/main/dat/AGEMKI_DAT_SPEC.md` — formato binario DAT
