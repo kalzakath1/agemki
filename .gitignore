@@ -2,6 +2,9 @@
 node_modules/
 
 # Build / output
+.claude
+game/
+git/
 out/
 dist/
 build/
