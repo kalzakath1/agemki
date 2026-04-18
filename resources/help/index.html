@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AGEMKI — Guía de Usuario</title>
+<style>
+  :root {
+    --bg:        #0f1117;
+    --bg2:       #1a1d27;
+    --bg3:       #22263a;
+    --border:    #2e3348;
+    --accent:    #4a90d9;
+    --accent2:   #6366f1;
+    --green:     #10b981;
+    --orange:    #f59e0b;
+    --pink:      #ec4899;
+    --text:      #e2e8f0;
+    --muted:     #94a3b8;
+    --code-bg:   #0d1117;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  html { scroll-behavior:smooth; }
+  body { background:var(--bg); color:var(--text); font-family:'Segoe UI',system-ui,sans-serif; font-size:15px; line-height:1.7; display:flex; min-height:100vh; }
+
+  /* ── Sidebar nav ── */
+  nav { width:260px; flex-shrink:0; background:var(--bg2); border-right:1px solid var(--border); position:sticky; top:0; height:100vh; overflow-y:auto; padding:24px 0; }
+  .nav-title { font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.12em; color:var(--accent); padding:0 20px 12px; }
+  .nav-section { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted); padding:14px 20px 4px; }
+  nav a { display:block; padding:5px 20px; font-size:13px; color:var(--muted); text-decoration:none; border-left:2px solid transparent; transition:color 0.15s, border-color 0.15s; }
+  nav a:hover { color:var(--text); border-left-color:var(--accent); }
+  nav a.active { color:var(--accent); border-left-color:var(--accent); }
+
+  /* ── Main content ── */
+  main { flex:1; max-width:860px; padding:48px 56px; overflow-x:hidden; }
+
+  h1 { font-size:32px; font-weight:800; color:var(--text); margin-bottom:8px; }
+  h1 span { color:var(--accent); }
+  .subtitle { color:var(--muted); font-size:15px; margin-bottom:40px; }
+  h2 { font-size:22px; font-weight:700; color:var(--text); margin:48px 0 16px; padding-bottom:10px; border-bottom:1px solid var(--border); }
+  h2:first-of-type { margin-top:0; }
+  h3 { font-size:17px; font-weight:700; color:var(--accent); margin:28px 0 10px; }
+  h4 { font-size:14px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.06em; margin:20px 0 8px; }
+  p { margin-bottom:12px; color:var(--text); }
+  p:last-child { margin-bottom:0; }
+  ul, ol { padding-left:24px; margin-bottom:12px; }
+  li { margin-bottom:5px; color:var(--text); }
+  strong { color:var(--text); }
+  a { color:var(--accent); }
+
+  /* ── Code & kbd ── */
+  code { background:var(--code-bg); border:1px solid var(--border); border-radius:4px; padding:1px 6px; font-family:'Cascadia Code','Fira Code',monospace; font-size:13px; color:#a5f3fc; }
+  pre { background:var(--code-bg); border:1px solid var(--border); border-radius:8px; padding:16px 20px; overflow-x:auto; margin:12px 0; }
+  pre code { background:none; border:none; padding:0; font-size:12px; color:#e2e8f0; }
+  kbd { background:var(--bg3); border:1px solid var(--border); border-radius:4px; padding:1px 7px; font-size:12px; font-family:inherit; color:var(--text); box-shadow:0 2px 0 var(--border); }
+
+  /* ── Callout boxes ── */
+  .tip, .warn, .info, .step-box { border-radius:8px; padding:14px 18px; margin:16px 0; border-left:3px solid; }
+  .tip  { background:rgba(16,185,129,0.08); border-color:var(--green); }
+  .tip::before  { content:'💡 '; font-weight:700; color:var(--green); }
+  .warn { background:rgba(245,158,11,0.08); border-color:var(--orange); }
+  .warn::before { content:'⚠️ '; font-weight:700; }
+  .info { background:rgba(74,144,217,0.08); border-color:var(--accent); }
+  .info::before { content:'ℹ️ '; font-weight:700; color:var(--accent); }
+
+  /* ── Step boxes ── */
+  .steps { counter-reset:step; display:flex; flex-direction:column; gap:12px; margin:16px 0; }
+  .step { display:flex; gap:16px; align-items:flex-start; background:var(--bg2); border:1px solid var(--border); border-radius:8px; padding:14px 16px; }
+  .step-num { background:var(--accent); color:#fff; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; flex-shrink:0; }
+  .step-body { flex:1; }
+  .step-body strong { display:block; margin-bottom:4px; font-size:14px; }
+
+  /* ── Tables ── */
+  table { width:100%; border-collapse:collapse; margin:12px 0; font-size:13px; }
+  th { background:var(--bg3); color:var(--muted); font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; padding:8px 12px; text-align:left; border:1px solid var(--border); }
+  td { padding:8px 12px; border:1px solid var(--border); vertical-align:top; }
+  tr:nth-child(even) td { background:rgba(255,255,255,0.02); }
+
+  /* ── Module badges ── */
+  .badge { display:inline-block; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:700; margin-right:4px; }
+  .badge-room  { background:rgba(74,144,217,0.2); color:#60a5fa; }
+  .badge-asset { background:rgba(99,102,241,0.2); color:#a5b4fc; }
+  .badge-char  { background:rgba(59,130,246,0.2); color:#93c5fd; }
+  .badge-dlg   { background:rgba(236,72,153,0.2); color:#f9a8d4; }
+  .badge-seq   { background:rgba(99,102,241,0.2); color:#c4b5fd; }
+  .badge-scr   { background:rgba(245,158,11,0.2); color:#fcd34d; }
+  .badge-build { background:rgba(16,185,129,0.2); color:#6ee7b7; }
+
+  /* ── Screenshot placeholders ── */
+  .screenshot { background:var(--bg3); border:1px dashed var(--border); border-radius:8px; padding:24px; text-align:center; color:var(--muted); font-size:13px; margin:12px 0; }
+  .screenshot-label { font-size:11px; font-style:italic; text-align:center; color:var(--muted); margin-top:4px; margin-bottom:16px; }
+
+  /* ── JSON preview ── */
+  .json { background:var(--code-bg); border:1px solid var(--border); border-radius:8px; padding:16px; font-family:monospace; font-size:12px; line-height:1.6; margin:12px 0; overflow-x:auto; }
+  .json .k { color:#7dd3fc; }   /* key */
+  .json .s { color:#86efac; }   /* string */
+  .json .n { color:#fca5a5; }   /* number */
+  .json .b { color:#f9a8d4; }   /* bool */
+
+  /* ── Separator ── */
+  hr { border:none; border-top:1px solid var(--border); margin:40px 0; }
+
+  /* ── TOC chapter intro ── */
+  .chapter-intro { background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:20px 24px; margin-bottom:28px; }
+  .chapter-intro p { color:var(--muted); margin:0; }
+
+  /* ── Workflow diagram ── */
+  .workflow { display:flex; align-items:center; gap:0; flex-wrap:wrap; margin:16px 0; }
+  .wf-step { background:var(--bg3); border:1px solid var(--border); border-radius:6px; padding:8px 14px; font-size:13px; font-weight:600; }
+  .wf-arrow { color:var(--muted); padding:0 8px; font-size:18px; }
+
+  @media (max-width:900px) {
+    nav { display:none; }
+    main { padding:24px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══ SIDEBAR NAV ══════════════════════════════════════════════════════════ -->
+<nav>
+  <div class="nav-title">📖 Guía de Usuario</div>
+  <div class="nav-section">Introducción</div>
+  <a href="#intro">¿Qué es AGEMKI?</a>
+  <a href="#install">Instalación</a>
+  <a href="#layout">Interfaz del editor</a>
+
+  <div class="nav-section">Tutorial completo</div>
+  <a href="#tut-overview">Visión general</a>
+  <a href="#tut-project">1. Crear el proyecto</a>
+  <a href="#tut-assets">2. Importar assets</a>
+  <a href="#tut-chars">3. Crear personajes</a>
+  <a href="#tut-room">4. Crear la room</a>
+  <a href="#tut-seq">5. Secuencia de intro</a>
+  <a href="#tut-dlg">6. Diálogo entre personajes</a>
+  <a href="#tut-npc">7. NPC con objeto</a>
+  <a href="#tut-script">8. Scripts de interacción</a>
+  <a href="#tut-build">9. Compilar y probar</a>
+
+  <div class="nav-section">Referencia</div>
+  <a href="#ref-modules">Módulos del editor</a>
+  <a href="#ref-scripts">Instrucciones de script</a>
+  <a href="#ref-triggers">Disparadores</a>
+  <a href="#ref-seq-steps">Pasos de secuencia</a>
+  <a href="#ref-json">Formatos JSON</a>
+  <a href="#ref-shortcuts">Atajos de teclado</a>
+  <a href="#ref-audio-setup">🎵 Configurar audio (AIL2)</a>
+</nav>
+
+<!-- ══ MAIN CONTENT ════════════════════════════════════════════════════════ -->
+<main>
+
+<!-- ── INTRO ──────────────────────────────────────────────────────────────── -->
+<h1><span>AGEMKI</span> · ACHUS Game Engine Mark I</h1>
+<p class="subtitle">Guía de Usuario — v11.0 · Marzo 2026</p>
+
+<section id="intro">
+<h2>¿Qué es AGEMKI?</h2>
+<p>ACHUS Game Engine Mark I (AGEMKI) es una herramienta visual para crear aventuras gráficas al estilo de los clásicos de LucasArts — <em>Monkey Island, Day of the Tentacle, Sam &amp; Max</em> — que se ejecutarán en <strong>MS-DOS</strong> en modo 13h VGA (320×200 píxeles, 256 colores).</p>
+<p>El editor corre en Windows/Mac/Linux como aplicación de escritorio (Electron + React). Los juegos se compilan con <strong>Open Watcom C</strong> y se prueban con <strong>DOSBox-X</strong> sin salir del editor.</p>
+
+<h3>Filosofía de diseño</h3>
+<ul>
+  <li><strong>Todo en JSON</strong> — rooms, personajes, diálogos, scripts... son ficheros de texto legibles y versionables con git.</li>
+  <li><strong>PCX nativo</strong> — el editor convierte tus PNG/JPG a PCX con la paleta del juego. No necesitas herramientas externas.</li>
+  <li><strong>Sin código C</strong> — el creador trabaja con datos (JSON, audio, imágenes). El motor en C que ejecuta el juego ya está escrito.</li>
+  <li><strong>Multiidioma de serie</strong> — todo el texto del juego vive en ficheros de localización. Añadir un idioma nuevo es copiar un JSON.</li>
+</ul>
+
+<h3>Flujo de trabajo general</h3>
+<div class="workflow">
+  <div class="wf-step">🖼 Assets</div><div class="wf-arrow">→</div>
+  <div class="wf-step">🏠 Rooms</div><div class="wf-arrow">→</div>
+  <div class="wf-step">🧍 Personajes</div><div class="wf-arrow">→</div>
+  <div class="wf-step">🎬 Secuencias</div><div class="wf-arrow">→</div>
+  <div class="wf-step">💬 Diálogos</div><div class="wf-arrow">→</div>
+  <div class="wf-step">📜 Scripts</div><div class="wf-arrow">→</div>
+  <div class="wf-step">🔨 Build</div>
+</div>
+</section>
+
+<section id="install">
+<h2>Instalación</h2>
+<h3>Requisitos</h3>
+<table>
+  <tr><th>Herramienta</th><th>Versión</th><th>Para qué</th></tr>
+  <tr><td>Node.js</td><td>LTS 18+</td><td>Ejecutar el editor</td></tr>
+  <tr><td>Open Watcom 2.0</td><td>2.0</td><td>Compilar el juego a MS-DOS</td></tr>
+  <tr><td>DOSBox-X</td><td>última</td><td>Ejecutar y probar el juego</td></tr>
+</table>
+
+<div class="info">Open Watcom y DOSBox-X solo son necesarios para compilar y ejecutar el juego. Puedes diseñar contenido (rooms, diálogos, scripts) sin tenerlos instalados.</div>
+
+<h3>Primer arranque</h3>
+<div class="steps">
+  <div class="step"><div class="step-num">1</div><div class="step-body"><strong>Descargar el instalador</strong> — ejecuta <code>AGEMKI-Setup.exe</code> (Windows) o el equivalente para tu SO.</div></div>
+  <div class="step"><div class="step-num">2</div><div class="step-body"><strong>Configurar herramientas</strong> — en el primer arranque, el editor detecta Open Watcom y DOSBox-X automáticamente. Si no los encuentra, ve a <kbd>Archivo → Preferencias → Herramientas externas</kbd>.</div></div>
+  <div class="step"><div class="step-num">3</div><div class="step-body"><strong>Crear o abrir un proyecto</strong> — en la pantalla de inicio pulsa <kbd>Nuevo proyecto</kbd> o selecciona uno reciente.</div></div>
+</div>
+</section>
+
+<section id="layout">
+<h2>Interfaz del editor</h2>
+<div class="screenshot">[ Captura del editor con las zonas numeradas ]</div>
+<div class="screenshot-label">Figura 1 — Layout principal del editor</div>
+
+<h3>Zonas principales</h3>
+<table>
+  <tr><th>Zona</th><th>Descripción</th></tr>
+  <tr><td><strong>Barra de módulos</strong> (arriba)</td><td>Cambia entre los módulos: Rooms, Assets, Objetos, Personajes, Textos, Audio, Diálogos, Secuencias, Scripts, Build</td></tr>
+  <tr><td><strong>Botón ▶ Play</strong></td><td>Compila en modo debug y lanza DOSBox-X con un clic</td></tr>
+  <tr><td><strong>Área de trabajo</strong> (centro)</td><td>Cambia según el módulo activo</td></tr>
+  <tr><td><strong>Selector de idioma</strong></td><td>Cambia el idioma activo para editar los textos del juego</td></tr>
+</table>
+
+<div class="tip">Al cambiar de módulo con cambios sin guardar, el editor te preguntará si deseas guardar antes de continuar.</div>
+
+<h3>Atajos globales</h3>
+<table>
+  <tr><th>Atajo</th><th>Acción</th></tr>
+  <tr><td><kbd>Ctrl</kbd>+<kbd>S</kbd></td><td>Guardar todo</td></tr>
+  <tr><td><kbd>F7</kbd></td><td>Compilar debug + lanzar DOSBox-X (equivale al botón ▶ Play)</td></tr>
+  <tr><td><kbd>F5</kbd></td><td>Compilar solo en modo debug</td></tr>
+  <tr><td><kbd>F6</kbd></td><td>Compilar release (genera ficheros DAT de distribución)</td></tr>
+</table>
+</section>
+
+<hr>
+
+<!-- ══ TUTORIAL COMPLETO ════════════════════════════════════════════════════ -->
+
+<section id="tut-overview">
+<h2>Tutorial — Ciclo completo de desarrollo</h2>
+<div class="chapter-intro">
+  <p>Este tutorial crea un juego mínimo funcional paso a paso: una secuencia de introducción, una room con dos personajes, un diálogo entre ellos, y un NPC que sale a buscar un objeto y vuelve a entregárselo al protagonista.</p>
+  <p><strong>El juego que construiremos:</strong> El protagonista (Rodrigo) llega a una taberna. Habla con el posadero (Diego), que le menciona que dejó su bolsa de monedas en el almacén. Diego va a buscarla y vuelve para dársela.</p>
+</div>
+</section>
+
+<!-- ── PASO 1: PROYECTO ───────────────────────────────────────────────────── -->
+<section id="tut-project">
+<h2>Paso 1 — Crear el proyecto</h2>
+<div class="steps">
+  <div class="step"><div class="step-num">1</div><div class="step-body">
+    <strong>Nuevo proyecto</strong>
+    En la pantalla de inicio pulsa <kbd>+ Nuevo proyecto</kbd>. Dale un nombre al proyecto (ej: <em>"Mis Aventuras"</em>) y elige una carpeta donde guardarlo.
+  </div></div>
+  <div class="step"><div class="step-num">2</div><div class="step-body">
+    <strong>Crear el juego</strong>
+    Dentro del proyecto pulsa <kbd>+ Nuevo juego</kbd>. Nombre: <em>"La Taberna del León"</em>. El editor creará la estructura de carpetas automáticamente.
+  </div></div>
+  <div class="step"><div class="step-num">3</div><div class="step-body">
+    <strong>Configurar idiomas</strong>
+    Ve al módulo <span class="badge badge-asset">🌐 Textos</span>. Comprueba que <code>es</code> está en la lista. Añade <code>en</code> si quieres soporte multiidioma desde el principio.
+  </div></div>
+</div>
+
+<p>Al abrir el juego se crea automáticamente:</p>
+<ul>
+  <li>Un <strong>verbset por defecto</strong> con los verbos básicos (Mirar, Coger, Usar, Hablar, Abrir, Cerrar)</li>
+  <li>La paleta maestra de 256 colores optimizada para aventuras retro</li>
+  <li>Un fichero de localización <code>es.json</code> vacío</li>
+</ul>
+</section>
+
+<!-- ── PASO 2: ASSETS ─────────────────────────────────────────────────────── -->
+<section id="tut-assets">
+<h2>Paso 2 — Importar assets gráficos</h2>
+<p>Necesitamos tres imágenes para este tutorial: el fondo de la taberna, el sprite de Rodrigo y el sprite de Diego.</p>
+
+<div class="steps">
+  <div class="step"><div class="step-num">1</div><div class="step-body">
+    <strong>Abrir Asset Studio</strong>
+    Ve al módulo <span class="badge badge-asset">🖼 Assets</span>. Verás cuatro pestañas: Fondos, Sprites, Objetos y Fuentes.
+  </div></div>
+  <div class="step"><div class="step-num">2</div><div class="step-body">
+    <strong>Importar el fondo</strong>
+    En la pestaña <strong>Fondos</strong>, pulsa <kbd>+ Importar</kbd>. Selecciona tu fichero PNG del interior de la taberna (320×144 px recomendado). El editor muestra:
+    <ul>
+      <li>Original PNG a la izquierda</li>
+      <li>Preview PCX cuantizado con la paleta del juego a la derecha</li>
+      <li>Selector de dithering: prueba <em>Floyd-Steinberg</em> para mejores gradientes</li>
+    </ul>
+    Confirma. El fichero se guarda como <code>TABERNA.PCX</code> en <code>assets/converted/backgrounds/</code>.
+  </div></div>
+  <div class="step"><div class="step-num">3</div><div class="step-body">
+    <strong>Importar los sprites</strong>
+    En la pestaña <strong>Sprites</strong>, importa los spritesheets de Rodrigo y Diego. Cada animación es un PCX con todos los frames en una fila horizontal.
+    <div class="tip">El editor calcula el <code>frameWidth</code> automáticamente: ancho total ÷ número de frames.</div>
+  </div></div>
+</div>
+
+<h3>Formato de spritesheets</h3>
+<table>
+  <tr><th>Convención</th><th>Detalle</th></tr>
+  <tr><td>Una animación por fichero PCX</td><td>No agrupes animaciones en un atlas</td></tr>
+  <tr><td>Una fila de frames</td><td>Todos los frames horizontalmente</td></tr>
+  <tr><td>Fondo transparente</td><td>Píxeles con alpha &lt; 128 se convierten a magenta (índice 0)</td></tr>
+  <tr><td>Nombre descriptivo</td><td>Ej: <code>rodrigo_walk.png</code> → <code>RODWALK.PCX</code></td></tr>
+</table>
+</section>
+
+<!-- ── PASO 3: PERSONAJES ─────────────────────────────────────────────────── -->
+<section id="tut-chars">
+<h2>Paso 3 — Crear los personajes</h2>
+<p>Crearemos dos personajes: <strong>Rodrigo</strong> (protagonista) y <strong>Diego</strong> (NPC posadero).</p>
+
+<div class="steps">
+  <div class="step"><div class="step-num">1</div><div class="step-body">
+    <strong>Crear Rodrigo</strong>
+    Módulo <span class="badge badge-char">🧍 Personajes</span> → <kbd>+ Nuevo personaje</kbd>. Nombre: <em>Rodrigo</em>. Activa la casilla <strong>Protagonista</strong>.
+  </div></div>
+  <div class="step"><div class="step-num">2</div><div class="step-body">
+    <strong>Añadir animaciones a Rodrigo</strong>
+    En el panel de animaciones, pulsa <kbd>+ Añadir animación</kbd> para cada sprite:
+    <table style="margin-top:8px">
+      <tr><th>ID</th><th>Nombre</th><th>Sprite</th><th>Frames</th><th>FPS</th></tr>
+      <tr><td><code>walk</code></td><td>Caminar</td><td>RODWALK.PCX</td><td>8</td><td>12</td></tr>
+      <tr><td><code>idle</code></td><td>Parado</td><td>RODIDLE.PCX</td><td>2</td><td>4</td></tr>
+      <tr><td><code>talk</code></td><td>Hablar</td><td>RODTALK.PCX</td><td>6</td><td>10</td></tr>
+    </table>
+  </div></div>
+  <div class="step"><div class="step-num">3</div><div class="step-body">
+    <strong>Crear Diego (NPC)</strong>
+    <kbd>+ Nuevo personaje</kbd>. Nombre: <em>Diego</em>. Deja la casilla Protagonista desactivada.
+    Añade sus animaciones igual que con Rodrigo. Añade también <code>walk_bag</code> (Diego caminando con la bolsa).
+  </div></div>
+  <div class="step"><div class="step-num">4</div><div class="step-body">
+    <strong>Configurar el protagonista activo</strong>
+    Ve a <kbd>Proyecto → Configuración</kbd> y asegúrate de que <em>Rodrigo</em> es el protagonista activo del juego.
+  </div></div>
+</div>
+
+<div class="tip">Los personajes se anclan al canvas por los <strong>pies</strong>, no por el centro. El punto de anclaje es la esquina inferior-central del sprite.</div>
+</section>
+
+<!-- ── PASO 4: ROOM ───────────────────────────────────────────────────────── -->
+<section id="tut-room">
+<h2>Paso 4 — Crear y configurar la room</h2>
+
+<div class="steps">
+  <div class="step"><div class="step-num">1</div><div class="step-body">
+    <strong>Nueva room</strong>
+    Módulo <span class="badge badge-room">🏠 Rooms</span> → <kbd>+ Nueva room</kbd>. Nombre: <em>taberna</em>.
+  </div></div>
+  <div class="step"><div class="step-num">2</div><div class="step-body">
+    <strong>Asignar el fondo</strong>
+    Doble clic en la room para abrirla en el Scene Editor. En el panel lateral, pulsa <kbd>📁 Importar imagen</kbd> y selecciona <code>TABERNA.PCX</code>.
+  </div></div>
+  <div class="step"><div class="step-num">3</div><div class="step-body">
+    <strong>Dibujar el walkmap</strong>
+    El walkmap define dónde puede caminar el protagonista.
+    <ul>
+      <li>En el panel lateral, activa la capa <strong>Walkmap</strong></li>
+      <li>Selecciona la herramienta <kbd>Polígono</kbd> (o pulsa <kbd>P</kbd>)</li>
+      <li>Dibuja el área del suelo de la taberna. Pulsa <kbd>Enter</kbd> para cerrar el polígono.</li>
+      <li>Si hay zonas sin paso (mostrador, escaleras), usa modo <em>Sub</em> para recortarlas.</li>
+    </ul>
+  </div></div>
+  <div class="step"><div class="step-num">4</div><div class="step-body">
+    <strong>Colocar los personajes</strong>
+    Activa la capa <strong>Personajes</strong>. Arrastra <em>Rodrigo</em> y <em>Diego</em> desde la lista al canvas. Rodrigo debería estar cerca de la puerta; Diego, detrás del mostrador.
+  </div></div>
+  <div class="step"><div class="step-num">5</div><div class="step-body">
+    <strong>Crear un objeto: la bolsa de monedas</strong>
+    Ve al módulo <span class="badge badge-asset">📦 Objetos</span> → <kbd>+ Nuevo objeto</kbd>. Nombre: <em>bolsa de monedas</em>. Tipo: <em>pickable</em>.
+    Añade un estado <code>default</code> con el sprite correspondiente. Vuelve al Scene Editor y coloca el objeto en el almacén (fuera del walkmap inicial — lo veremos en el script).
+  </div></div>
+  <div class="step"><div class="step-num">6</div><div class="step-body">
+    <strong>Añadir un entry point</strong>
+    Los entry points son los puntos donde aparecen los personajes al llegar desde otra room. El editor crea <code>entry_default</code> automáticamente. Arrástralo a la puerta de la taberna.
+  </div></div>
+</div>
+
+<div class="screenshot">[ Captura del Scene Editor con el walkmap verde y los personajes posicionados ]</div>
+<div class="screenshot-label">Figura 2 — Scene Editor con walkmap, personajes y entry point configurados</div>
+</section>
+
+<!-- ── PASO 5: SECUENCIA INTRO ────────────────────────────────────────────── -->
+<section id="tut-seq">
+<h2>Paso 5 — Secuencia de introducción</h2>
+<p>Crearemos una cutscene de apertura: fundido desde negro, aparición del título, Rodrigo entra caminando y Diego lo saluda.</p>
+
+<div class="steps">
+  <div class="step"><div class="step-num">1</div><div class="step-body">
+    <strong>Nueva secuencia</strong>
+    Módulo <span class="badge badge-seq">🎬 Secuencias</span> → <kbd>+ Nueva secuencia</kbd>. Nombre: <em>intro</em>.
+  </div></div>
+  <div class="step"><div class="step-num">2</div><div class="step-body">
+    <strong>Añadir pasos desde la paleta izquierda</strong>
+    Construimos la secuencia paso a paso:
+    <table style="margin-top:8px">
+      <tr><th>#</th><th>Tipo</th><th>Configuración</th></tr>
+      <tr><td>1</td><td>Pantalla negra</td><td>duration: 1.0</td></tr>
+      <tr><td>2</td><td>Mostrar texto</td><td>Texto: "Cádiz, 1692" · Fuente: grande sólida · Posición: centrado · Efecto: máquina de escribir · 15 chars/s · duration: 3.0</td></tr>
+      <tr><td>3</td><td>Fundido a negro</td><td>duration: 0.8</td></tr>
+      <tr><td>4</td><td>Cambiar fondo</td><td>room: taberna</td></tr>
+      <tr><td>5</td><td>Fundido desde negro</td><td>duration: 1.2</td></tr>
+      <tr><td>6</td><td>Teleportar personaje</td><td>Rodrigo · x: 10 · y: 110 (fuera de pantalla, izquierda)</td></tr>
+      <tr><td>7</td><td>Reproducir MIDI</td><td>midi:TABERNA.MID</td></tr>
+      <tr><td>8</td><td>Desplazar personaje</td><td>Rodrigo · x: 80 · y: 110 · speed: 3</td></tr>
+      <tr><td>9</td><td>Esperar caminar</td><td>Rodrigo</td></tr>
+      <tr><td>10</td><td>Iniciar diálogo</td><td>dlg_saludo_diego</td></tr>
+      <tr><td>11</td><td>Fin de secuencia</td><td>—</td></tr>
+    </table>
+  </div></div>
+  <div class="step"><div class="step-num">3</div><div class="step-body">
+    <strong>Asignar como secuencia de inicio</strong>
+    Ve a <kbd>Proyecto → Configuración</kbd>. En el campo <em>Secuencia de inicio</em>, selecciona <em>intro</em>. Esta secuencia se ejecutará automáticamente al iniciar una nueva partida.
+  </div></div>
+</div>
+
+<div class="info">Los pasos <strong>Desplazar personaje</strong> + <strong>Esperar caminar</strong> van siempre juntos: "desplazar" da la orden (no bloqueante), "esperar" detiene la secuencia hasta que llega.</div>
+</section>
+
+<!-- ── PASO 6: DIÁLOGO ────────────────────────────────────────────────────── -->
+<section id="tut-dlg">
+<h2>Paso 6 — Diálogo entre dos personajes</h2>
+<p>El diálogo <em>dlg_saludo_diego</em>: Diego saluda a Rodrigo, Rodrigo puede preguntar por la bolsa o despedirse.</p>
+
+<div class="steps">
+  <div class="step"><div class="step-num">1</div><div class="step-body">
+    <strong>Nuevo diálogo</strong>
+    Módulo <span class="badge badge-dlg">💬 Diálogos</span> → <kbd>+ Nuevo diálogo</kbd>. Nombre: <em>dlg_saludo_diego</em>.
+  </div></div>
+  <div class="step"><div class="step-num">2</div><div class="step-body">
+    <strong>Crear los nodos</strong>
+    El grafo visual tiene nodos arrastrables. Crea la siguiente estructura:
+    <ul>
+      <li><strong>Nodo 1 — line</strong>: Actor: Diego · Texto (ES): <em>"¡Buenas tardes! ¿En qué puedo ayudarte?"</em></li>
+      <li><strong>Nodo 2 — choice</strong>: Opciones del jugador:<br>
+        - <em>"Busco mi bolsa de monedas"</em> → conecta al nodo 3<br>
+        - <em>"Nada, gracias"</em> → conecta al nodo 5 (end)</li>
+      <li><strong>Nodo 3 — line</strong>: Actor: Diego · Texto: <em>"¡Oh, claro! La dejé en el almacén. Ahora mismo te la traigo."</em></li>
+      <li><strong>Nodo 4 — action</strong>: Establece flag <code>diego_va_a_buscar_bolsa = true</code></li>
+      <li><strong>Nodo 5 — end</strong></li>
+    </ul>
+    Conecta los nodos arrastrando desde el puerto de salida de cada uno.
+  </div></div>
+  <div class="step"><div class="step-num">3</div><div class="step-body">
+    <strong>Editar el texto en el inspector</strong>
+    Selecciona cada nodo line para editarlo en el panel derecho. Usa las pestañas <kbd>ES</kbd> / <kbd>EN</kbd> para añadir la traducción al inglés.
+    <div class="tip">El texto nunca se guarda dentro del JSON del diálogo — siempre va a los ficheros de localización. Por eso el editor tiene las pestañas de idioma integradas.</div>
+  </div></div>
+  <div class="step"><div class="step-num">4</div><div class="step-body">
+    <strong>Asignar el diálogo a Diego</strong>
+    Vuelve al módulo Personajes → Diego. En el campo <em>Diálogo por defecto</em>, selecciona <em>dlg_saludo_diego</em>. Ahora cuando el jugador use el verbo <em>Hablar</em> en Diego, se abrirá este árbol.
+  </div></div>
+</div>
+
+<div class="screenshot">[ Captura del editor de diálogos con el grafo del árbol ]</div>
+<div class="screenshot-label">Figura 3 — Editor de diálogos: grafo con nodos line, choice, action y end</div>
+</section>
+
+<!-- ── PASO 7: NPC CON OBJETO ─────────────────────────────────────────────── -->
+<section id="tut-npc">
+<h2>Paso 7 — NPC que busca un objeto y lo entrega</h2>
+<p>Cuando el flag <code>diego_va_a_buscar_bolsa</code> es <em>true</em>, Diego camina al almacén, recoge la bolsa y vuelve a entregársela a Rodrigo.</p>
+
+<h3>La lógica</h3>
+<p>Usaremos un script con disparador <code>flag_change</code> que se activa cuando el flag cambia a <em>true</em>. Dentro del script ejecutamos una secuencia.</p>
+
+<div class="steps">
+  <div class="step"><div class="step-num">1</div><div class="step-body">
+    <strong>Crear la secuencia "diego busca bolsa"</strong>
+    Módulo Secuencias → <kbd>+ Nueva secuencia</kbd>. Nombre: <em>seq_diego_busca_bolsa</em>.
+    <table style="margin-top:8px">
+      <tr><th>#</th><th>Tipo</th><th>Configuración</th></tr>
+      <tr><td>1</td><td>Desplazar personaje</td><td>Diego · x: 280 · y: 80 (almacén) · speed: 4 · anim: walk</td></tr>
+      <tr><td>2</td><td>Esperar caminar</td><td>Diego</td></tr>
+      <tr><td>3</td><td>Reproducir animación</td><td>Diego · anim: coger (Diego se agacha)</td></tr>
+      <tr><td>4</td><td>Ocultar objeto</td><td>obj_bolsa · visible: false (la bolsa desaparece del suelo)</td></tr>
+      <tr><td>5</td><td>Esperar</td><td>0.5 segundos</td></tr>
+      <tr><td>6</td><td>Desplazar personaje</td><td>Diego · x: 120 · y: 110 (donde está Rodrigo) · speed: 4 · anim: walk_bag</td></tr>
+      <tr><td>7</td><td>Esperar caminar</td><td>Diego</td></tr>
+      <tr><td>8</td><td>Orientar personaje</td><td>Diego · dirección: left</td></tr>
+      <tr><td>9</td><td>Mostrar texto</td><td>Texto: "Aquí tienes, señor." · Fuente: mediana · Posición: abajo · duration: 2.5</td></tr>
+      <tr><td>10</td><td>Dar objeto a personaje</td><td>Establecer flag: <code>rodrigo_tiene_bolsa = true</code> (usamos set_flag en un step de lógica)</td></tr>
+      <tr><td>11</td><td>Ejecutar script</td><td>scr_dar_bolsa_a_rodrigo (añadiremos este script)</td></tr>
+      <tr><td>12</td><td>Fin de secuencia</td><td>—</td></tr>
+    </table>
+  </div></div>
+  <div class="step"><div class="step-num">2</div><div class="step-body">
+    <strong>Crear el script "dar bolsa a Rodrigo"</strong>
+    Módulo Scripts → <kbd>+ Nuevo script</kbd>. Nombre: <em>scr_dar_bolsa_a_rodrigo</em>.
+    <br><br>Disparador: <em>game_start</em> (lo sobreescribiremos — se usa como placeholder; este script solo se llama desde la secuencia con CALL_SCRIPT).
+    <br><br>Instrucciones:
+    <ul>
+      <li><code>GIVE_OBJECT</code> · obj_bolsa · Rodrigo — añade la bolsa al inventario del protagonista</li>
+      <li><code>SET_FLAG</code> · <code>bolsa_entregada = true</code></li>
+    </ul>
+  </div></div>
+  <div class="step"><div class="step-num">3</div><div class="step-body">
+    <strong>Crear el script disparador</strong>
+    Módulo Scripts → <kbd>+ Nuevo script</kbd>. Nombre: <em>scr_trigger_diego_busca</em>.
+    <br><br>Disparador: <code>flag_change</code> · flag: <code>diego_va_a_buscar_bolsa</code> · operator: equals · value: <code>true</code>.
+    <br><br>Instrucciones:
+    <ul>
+      <li><code>PLAY_SEQUENCE</code> · seq_diego_busca_bolsa</li>
+    </ul>
+    Este script se activa automáticamente cuando el nodo action del diálogo establece el flag.
+  </div></div>
+</div>
+</section>
+
+<!-- ── PASO 8: SCRIPTS DE INTERACCIÓN ─────────────────────────────────────── -->
+<section id="tut-script">
+<h2>Paso 8 — Scripts de interacción con objetos</h2>
+<p>Añadimos reacciones básicas para que el jugador pueda interactuar con la bolsa y con Diego.</p>
+
+<h3>Script: Mirar la bolsa</h3>
+<div class="steps">
+  <div class="step"><div class="step-num">1</div><div class="step-body">
+    <strong>Nuevo script</strong> — Nombre: <em>scr_mirar_bolsa</em>
+    <br>Disparador: <code>verb_object</code> · verb: <code>mirar</code> · objeto: <code>obj_bolsa</code>
+    <br><br>Instrucciones:
+    <ul>
+      <li><code>IF</code> · condición: <code>flag_is</code> · flag: <code>bolsa_entregada</code> · valor: true</li>
+      <li>&nbsp;&nbsp;<code>SHOW_TEXT</code> · clave: <code>msg.bolsa_en_inventario</code></li>
+      <li><code>ELSE</code></li>
+      <li>&nbsp;&nbsp;<code>SHOW_TEXT</code> · clave: <code>msg.bolsa_en_suelo</code></li>
+      <li><code>END_IF</code></li>
+    </ul>
+  </div></div>
+  <div class="step"><div class="step-num">2</div><div class="step-body">
+    <strong>Añadir los textos en el módulo Textos</strong>
+    Módulo 🌐 Textos. Añade las claves:
+    <ul>
+      <li><code>msg.bolsa_en_inventario</code> → <em>"Parece que ya la tengo yo."</em></li>
+      <li><code>msg.bolsa_en_suelo</code> → <em>"Una bolsa de monedas. Debe ser la mía."</em></li>
+    </ul>
+  </div></div>
+</div>
+
+<h3>Resultado final: el inventario</h3>
+<p>Cuando <code>GIVE_OBJECT</code> se ejecuta, la bolsa aparece en el panel de inventario del protagonista (las 8 casillas en la parte inferior de la pantalla). El jugador puede seleccionarla y usarla con otros objetos.</p>
+
+<div class="tip">Para añadir más acciones (usar la bolsa para comprar algo, combinar con otro objeto...) simplemente crea más scripts con los disparadores correspondientes.</div>
+</section>
+
+<!-- ── PASO 9: BUILD ───────────────────────────────────────────────────────── -->
+<section id="tut-build">
+<h2>Paso 9 — Compilar y probar</h2>
+
+<div class="steps">
+  <div class="step"><div class="step-num">1</div><div class="step-body">
+    <strong>Verificar herramientas</strong>
+    Ve al módulo <span class="badge badge-build">🔨 Build</span>. Comprueba que Open Watcom y DOSBox-X muestran ✅. Si alguno tiene ❌, configura la ruta en Preferencias.
+  </div></div>
+  <div class="step"><div class="step-num">2</div><div class="step-body">
+    <strong>Build + Run</strong>
+    Pulsa el botón <kbd>▶ Build + Run (F7)</kbd> o el botón <kbd>▶ Play</kbd> de la barra superior. El log de compilación aparece en tiempo real en el panel derecho.
+    <ul>
+      <li>Si hay errores de Watcom, el log los muestra en rojo</li>
+      <li>Si todo va bien, DOSBox-X se lanza automáticamente con el juego</li>
+    </ul>
+  </div></div>
+  <div class="step"><div class="step-num">3</div><div class="step-body">
+    <strong>Debug vs Release</strong>
+    <ul>
+      <li><kbd>Debug (F5)</kbd> — compila rápido con símbolos. Usa ficheros sueltos (no DAT). Ideal para iterar.</li>
+      <li><kbd>Release (F6)</kbd> — optimizado, genera <code>GRAPHICS.DAT</code>, <code>AUDIO.DAT</code>, <code>SCRIPTS.DAT</code>, <code>FONTS.DAT</code>. Para distribuir el juego.</li>
+    </ul>
+  </div></div>
+</div>
+
+<div class="warn">En modo debug, el juego lee los ficheros directamente de las carpetas del proyecto. No distribuyas el build de debug — usa siempre Release para el producto final.</div>
+</section>
+
+<hr>
+
+<!-- ══ REFERENCIA ═══════════════════════════════════════════════════════════ -->
+
+<section id="ref-modules">
+<h2>Referencia — Módulos del editor</h2>
+<table>
+  <tr><th>Módulo</th><th>Función principal</th><th>Ficheros que gestiona</th></tr>
+  <tr><td>🏠 Rooms</td><td>Room Manager + Scene Editor + mapa de conexiones</td><td><code>rooms/room_*.json</code></td></tr>
+  <tr><td>🖼 Assets</td><td>Import PNG→PCX, paleta, preview cuantizado</td><td><code>assets/originals/</code> <code>assets/converted/</code></td></tr>
+  <tr><td>📦 Objetos</td><td>Estados, verbos, combinaciones</td><td><code>objects/obj_*.json</code></td></tr>
+  <tr><td>🧍 Personajes</td><td>Animaciones, inventario, patrulla, diálogos condicionales</td><td><code>characters/char_*.json</code></td></tr>
+  <tr><td>🖱 Verbsets</td><td>Sets de verbos intercambiables</td><td><code>verbsets/verbset_*.json</code></td></tr>
+  <tr><td>🌐 Textos</td><td>Todas las cadenas localizables del juego</td><td><code>locales/es.json</code> <code>en.json</code></td></tr>
+  <tr><td>🎵 Audio</td><td>Gestión MIDI y SFX por dispositivo</td><td><code>audio/midi/</code> <code>audio/sfx/</code></td></tr>
+  <tr><td>💬 Diálogos</td><td>Árboles de diálogo con grafo visual</td><td><code>dialogues/dlg_*.json</code></td></tr>
+  <tr><td>🎬 Secuencias</td><td>Cutscenes: lista ordenada de pasos bloqueantes</td><td><code>sequences/seq_*.json</code></td></tr>
+  <tr><td>📜 Scripts</td><td>Lógica de respuesta a interacciones del jugador</td><td><code>scripts/scr_*.json</code></td></tr>
+  <tr><td>🔨 Build</td><td>Compilación Watcom + lanzamiento DOSBox-X</td><td><code>build/</code></td></tr>
+</table>
+</section>
+
+<section id="ref-scripts">
+<h2>Referencia — Instrucciones de script</h2>
+<table>
+  <tr><th>Instrucción</th><th>Descripción</th></tr>
+  <tr><td colspan="2" style="background:rgba(245,158,11,0.08);font-weight:700;color:#fcd34d">Variables</td></tr>
+  <tr><td><code>SET_FLAG flag valor</code></td><td>Establece un flag global (boolean, integer o string)</td></tr>
+  <tr><td><code>SET_ATTR target attr valor</code></td><td>Cambia atributo de personaje (char:id) u objeto (obj:id)</td></tr>
+  <tr><td><code>ADD_ATTR target attr cantidad</code></td><td>Suma a un atributo (cantidad puede ser negativa)</td></tr>
+  <tr><td><code>LET nombre valor</code></td><td>Variable local al script (no persiste en savegame)</td></tr>
+  <tr><td colspan="2" style="background:rgba(139,92,246,0.08);font-weight:700;color:#c4b5fd">Control</td></tr>
+  <tr><td><code>IF / ELIF / ELSE / END_IF</code></td><td>Ramificación condicional. Sin bucles.</td></tr>
+  <tr><td><code>CALL_SCRIPT id</code></td><td>Ejecuta otro script (no bloqueante)</td></tr>
+  <tr><td><code>RETURN</code></td><td>Termina el script inmediatamente</td></tr>
+  <tr><td><code>BLOCK_EXIT</code></td><td>Cancela la salida de room (solo en disparador room_exit)</td></tr>
+  <tr><td colspan="2" style="background:rgba(59,130,246,0.08);font-weight:700;color:#93c5fd">Personajes</td></tr>
+  <tr><td><code>MOVE_CHAR char x y</code></td><td>Teleport instantáneo (sin animación)</td></tr>
+  <tr><td><code>WALK_CHAR char x y speed anim</code></td><td>Pathfinding + animación configurable</td></tr>
+  <tr><td><code>GIVE_OBJECT obj char</code></td><td>Añade objeto al inventario del personaje</td></tr>
+  <tr><td><code>REMOVE_OBJECT obj char</code></td><td>Quita del inventario</td></tr>
+  <tr><td><code>CHANGE_ROOM room entry</code></td><td>Cambia de room al protagonista</td></tr>
+  <tr><td><code>PLAY_SEQUENCE seq</code></td><td>Lanza una cutscene (no bloqueante)</td></tr>
+  <tr><td><code>PLAY_MIDI id</code> / <code>PLAY_SFX id</code></td><td>Audio: prefijo <code>midi:</code> o <code>sfx:</code></td></tr>
+  <tr><td><code>SAVE_CHECKPOINT</code></td><td>Guarda la partida automáticamente</td></tr>
+</table>
+</section>
+
+<section id="ref-triggers">
+<h2>Referencia — Disparadores de script</h2>
+<table>
+  <tr><th>Tipo</th><th>Cuándo se activa</th></tr>
+  <tr><td><code>verb_object</code></td><td>El jugador aplica un verbo a un objeto</td></tr>
+  <tr><td><code>verb_char</code></td><td>El jugador aplica un verbo a un personaje</td></tr>
+  <tr><td><code>dialogue_choice</code></td><td>El jugador elige una opción en un diálogo</td></tr>
+  <tr><td><code>flag_change</code></td><td>Un flag cambia a un valor concreto</td></tr>
+  <tr><td><code>room_enter</code></td><td>El protagonista entra en la room</td></tr>
+  <tr><td><code>room_exit</code></td><td>El protagonista intenta salir (puede cancelarse con BLOCK_EXIT)</td></tr>
+  <tr><td><code>room_load</code></td><td>La room se carga en memoria (ideal para música)</td></tr>
+  <tr><td><code>game_start</code></td><td>Se inicia una nueva partida</td></tr>
+  <tr><td><code>sequence_end</code></td><td>Una secuencia termina</td></tr>
+  <tr><td><code>timer</code></td><td>Cuenta atrás en segundos</td></tr>
+  <tr><td><code>object_click</code></td><td>Clic en objeto sin verbo activo</td></tr>
+  <tr><td><code>char_death</code></td><td>Vida de personaje llega a 0 (requiere rpgAttributes)</td></tr>
+</table>
+</section>
+
+<section id="ref-seq-steps">
+<h2>Referencia — Pasos de secuencia</h2>
+<table>
+  <tr><th>Tipo</th><th>Bloqueante</th><th>Descripción</th></tr>
+  <tr><td><code>black_screen</code></td><td>✅</td><td>Pantalla negra N segundos</td></tr>
+  <tr><td><code>fade_in / fade_out</code></td><td>✅</td><td>Fundido desde/a negro</td></tr>
+  <tr><td><code>show_text</code></td><td>✅</td><td>Texto con fuente/posición/efecto. Texto inline multiidioma.</td></tr>
+  <tr><td><code>scroll_text</code></td><td>✅</td><td>Texto desplazándose hacia arriba (créditos)</td></tr>
+  <tr><td><code>walk_char</code></td><td>❌*</td><td>Desplaza personaje con pathfinding</td></tr>
+  <tr><td><code>wait_walk</code></td><td>✅</td><td>Espera a que termine el desplazamiento</td></tr>
+  <tr><td><code>play_anim</code></td><td>✅</td><td>Reproduce animación una vez y espera</td></tr>
+  <tr><td><code>dialogue</code></td><td>✅</td><td>Árbol de diálogo completo</td></tr>
+  <tr><td><code>play_midi / play_sfx</code></td><td>❌</td><td>Audio (no bloqueante)</td></tr>
+  <tr><td><code>call_script</code></td><td>❌</td><td>Ejecuta un script sin esperar</td></tr>
+  <tr><td><code>wait</code></td><td>✅</td><td>Pausa N segundos</td></tr>
+  <tr><td><code>end_sequence</code></td><td>—</td><td>Fin de la secuencia</td></tr>
+</table>
+<p>* <code>walk_char</code> da la orden de movimiento y continúa. Usa <code>wait_walk</code> después para sincronizar.</p>
+</section>
+
+<section id="ref-json">
+<h2>Referencia — Formatos JSON</h2>
+<h3>game.json (configuración del juego)</h3>
+<div class="json">
+{<br>
+&nbsp;&nbsp;<span class="k">"name"</span>: <span class="s">"La Taberna del León"</span>,<br>
+&nbsp;&nbsp;<span class="k">"protagonists"</span>: [<span class="s">"char_001"</span>],<br>
+&nbsp;&nbsp;<span class="k">"startSequence"</span>: <span class="s">"seq_intro"</span>,<br>
+&nbsp;&nbsp;<span class="k">"activeLanguage"</span>: <span class="s">"es"</span>,<br>
+&nbsp;&nbsp;<span class="k">"systems"</span>: { <span class="k">"rpgAttributes"</span>: <span class="b">false</span>, <span class="k">"scrollRooms"</span>: <span class="b">false</span> }<br>
+}
+</div>
+
+<h3>Script JSON</h3>
+<div class="json">
+{<br>
+&nbsp;&nbsp;<span class="k">"trigger"</span>: { <span class="k">"type"</span>: <span class="s">"verb_object"</span>, <span class="k">"verbId"</span>: <span class="s">"mirar"</span>, <span class="k">"objectId"</span>: <span class="s">"obj_bolsa"</span> },<br>
+&nbsp;&nbsp;<span class="k">"instructions"</span>: [<br>
+&nbsp;&nbsp;&nbsp;&nbsp;{ <span class="k">"type"</span>: <span class="s">"SHOW_TEXT"</span>, <span class="k">"localeKey"</span>: <span class="s">"msg.bolsa_en_suelo"</span> }<br>
+&nbsp;&nbsp;]<br>
+}
+</div>
+
+<h3>show_text en secuencia</h3>
+<div class="json">
+{<br>
+&nbsp;&nbsp;<span class="k">"type"</span>: <span class="s">"show_text"</span>,<br>
+&nbsp;&nbsp;<span class="k">"texts"</span>: { <span class="k">"es"</span>: <span class="s">"Cádiz, 1692"</span>, <span class="k">"en"</span>: <span class="s">"Cadiz, 1692"</span> },<br>
+&nbsp;&nbsp;<span class="k">"font"</span>: <span class="s">"large_solid"</span>,<br>
+&nbsp;&nbsp;<span class="k">"position"</span>: <span class="s">"center"</span>,<br>
+&nbsp;&nbsp;<span class="k">"effect"</span>: <span class="s">"typewriter"</span>,<br>
+&nbsp;&nbsp;<span class="k">"typewriterSpeed"</span>: <span class="n">15</span>,<br>
+&nbsp;&nbsp;<span class="k">"duration"</span>: <span class="n">3.0</span><br>
+}
+</div>
+</section>
+
+<section id="ref-shortcuts">
+<h2>Referencia — Atajos de teclado</h2>
+<table>
+  <tr><th>Atajo</th><th>Contexto</th><th>Acción</th></tr>
+  <tr><td><kbd>Ctrl</kbd>+<kbd>S</kbd></td><td>Global</td><td>Guardar todo</td></tr>
+  <tr><td><kbd>F5</kbd></td><td>Global</td><td>Compilar debug</td></tr>
+  <tr><td><kbd>F6</kbd></td><td>Global</td><td>Compilar release</td></tr>
+  <tr><td><kbd>F7</kbd></td><td>Global</td><td>Build + Run (DOSBox-X)</td></tr>
+  <tr><td><kbd>P</kbd></td><td>Scene Editor</td><td>Herramienta polígono</td></tr>
+  <tr><td><kbd>R</kbd></td><td>Scene Editor</td><td>Herramienta rectángulo</td></tr>
+  <tr><td><kbd>C</kbd></td><td>Scene Editor</td><td>Herramienta círculo</td></tr>
+  <tr><td><kbd>S</kbd></td><td>Scene Editor</td><td>Herramienta selección</td></tr>
+  <tr><td><kbd>H</kbd></td><td>Scene Editor</td><td>Herramienta pan (mover vista)</td></tr>
+  <tr><td><kbd>1</kbd> / <kbd>2</kbd> / <kbd>4</kbd></td><td>Scene Editor</td><td>Zoom 1x / 2x / 4x</td></tr>
+  <tr><td><kbd>Enter</kbd></td><td>Scene Editor</td><td>Cerrar polígono en curso</td></tr>
+  <tr><td><kbd>Escape</kbd></td><td>Scene Editor</td><td>Cancelar polígono en curso</td></tr>
+  <tr><td><kbd>Supr</kbd> / <kbd>Backspace</kbd></td><td>Scene Editor</td><td>Eliminar shape seleccionado</td></tr>
+</table>
+<div class="info">Los atajos de teclado solo actúan cuando el foco NO está en un campo de texto. Si un atajo no responde, haz clic en el área de trabajo primero.</div>
+</section>
+
+<hr>
+<p style="text-align:center;color:var(--muted);font-size:12px;padding:20px 0">
+  AGEMKI v11.0 · Documento vivo — se actualiza con cada sprint
+</p>
+
+<section id="ref-audio-setup">
+<h2>Configurar audio — Driver AIL2 (Miles Sound System)</h2>
+
+<p>
+  AGEMKI usa <strong>AIL V2.14</strong> (Audio Interface Library de John Miles, dominio público desde 2000)
+  para reproducir música MIDI y efectos de sonido en DOS. El sistema funciona mediante
+  <strong>drivers TSR</strong> con extensión <code>.ADV</code> — pequeños ficheros binarios que
+  el juego carga en memoria en tiempo de ejecución y que se comunican directamente con
+  el hardware de audio (AdLib, Sound Blaster, Roland MT-32, etc.).
+</p>
+
+<div class="info">
+  <strong>El editor no incluye estos ficheros.</strong> Por razones de licencia, debes obtenerlos
+  tú mismo extrayéndolos de juegos DOS que los distribuyeron. El proceso tarda menos de 10 minutos.
+</div>
+
+<h3>¿Por qué hay que obtenerlos manualmente?</h3>
+<p>
+  Los ficheros <code>.ADV</code> son binarios compilados que formaban parte de juegos comerciales de los años 90.
+  Aunque el código fuente de AIL2 es dominio público, los binarios de los drivers pertenecen
+  a los publishers originales. Por eso AGEMKI no los redistribuye directamente.
+  Sin embargo, todos los juegos mencionados abajo están disponibles como freeware/abandonware
+  y sus drivers llevan décadas circulando libremente en la comunidad retro.
+</p>
+
+<h3>Ficheros necesarios</h3>
+<table>
+  <tr><th>Fichero</th><th>Para qué sirve</th><th>Destino en el editor</th></tr>
+  <tr><td><code>ADLIB.ADV</code></td><td>Driver AdLib OPL2 — el más compatible. Funciona en AdLib, Sound Blaster y cualquier tarjeta con chip OPL2/OPL3</td><td><code>resources/drivers/</code></td></tr>
+  <tr><td><code>ADLIB.AD</code></td><td>Banco de patches FM para el driver AdLib (instrumentos)</td><td><code>resources/drivers/</code></td></tr>
+  <tr><td><code>MT32MPU.ADV</code></td><td>Driver Roland MT-32 / MPU-401 — calidad máxima con hardware externo</td><td><code>resources/drivers/</code></td></tr>
+  <tr><td><code>SBFM.ADV</code></td><td>Driver Sound Blaster FM (OPL2 específico de SB)</td><td><code>resources/drivers/</code></td></tr>
+  <tr><td><code>PCSPKR.ADV</code></td><td>Driver PC Speaker — melodía monofónica, sin hardware adicional</td><td><code>resources/drivers/</code></td></tr>
+  <tr><td><code>GENMID.ADV</code></td><td>Driver General MIDI / MPU-401 estándar GM</td><td><code>resources/drivers/</code></td></tr>
+  <tr><td><code>MIDIFORM.EXE</code></td><td>Conversor MIDI → XMI. El build lo invoca automáticamente al compilar</td><td><code>resources/tools/</code></td></tr>
+</table>
+
+<h3>Paso 1 — Descargar los juegos fuente</h3>
+<p>Necesitas dos juegos. Ambos son freeware y están disponibles en <strong>myabandonware.com</strong>:</p>
+
+<table>
+  <tr><th>Juego</th><th>Año</th><th>URL</th><th>Ficheros que contiene</th></tr>
+  <tr>
+    <td><strong>Ultima Underworld: The Stygian Abyss</strong></td>
+    <td>1992</td>
+    <td><code>myabandonware.com</code> → buscar "Ultima Underworld Stygian"</td>
+    <td><code>ADLIB.ADV</code>, <code>UW.AD</code>, <code>MT32MPU.ADV</code>, <code>SBFM.ADV</code>, <code>PCSPKR.ADV</code></td>
+  </tr>
+  <tr>
+    <td><strong>Dungeon Hack</strong></td>
+    <td>1993</td>
+    <td><code>myabandonware.com</code> → buscar "Dungeon Hack DOS"</td>
+    <td><code>ADLIB.ADV</code>, <code>STDPATCH.AD</code>, <code>MIDIFORM.EXE</code>, <code>GENMID.ADV</code></td>
+  </tr>
+</table>
+
+<h3>Paso 2 — Extraer y copiar los ficheros</h3>
+<p>Una vez descargados e instalados los juegos:</p>
+
+<p><strong>De Ultima Underworld 1</strong> — busca en la carpeta <code>SOUND\</code> del juego instalado:</p>
+<table>
+  <tr><th>Fichero original</th><th>Copiar como</th><th>Destino</th></tr>
+  <tr><td><code>SOUND\ADLIB.ADV</code></td><td><code>ADLIB.ADV</code></td><td><code>resources/drivers/</code></td></tr>
+  <tr><td><code>SOUND\UW.AD</code></td><td><code>ADLIB.AD</code> <em>(renombrar)</em></td><td><code>resources/drivers/</code></td></tr>
+  <tr><td><code>SOUND\MT32MPU.ADV</code></td><td><code>MT32MPU.ADV</code></td><td><code>resources/drivers/</code></td></tr>
+  <tr><td><code>SOUND\SBFM.ADV</code></td><td><code>SBFM.ADV</code></td><td><code>resources/drivers/</code></td></tr>
+  <tr><td><code>SOUND\PCSPKR.ADV</code></td><td><code>PCSPKR.ADV</code></td><td><code>resources/drivers/</code></td></tr>
+</table>
+
+<p><strong>De Dungeon Hack</strong> — busca en el directorio raíz del juego instalado:</p>
+<table>
+  <tr><th>Fichero original</th><th>Copiar como</th><th>Destino</th></tr>
+  <tr><td><code>ADLIB.ADV</code></td><td><code>ADLIB.ADV</code> <em>(alternativo, si el de UW no funciona)</em></td><td><code>resources/drivers/</code></td></tr>
+  <tr><td><code>STDPATCH.AD</code></td><td><code>ADLIB.AD</code> <em>(alternativo al UW.AD)</em></td><td><code>resources/drivers/</code></td></tr>
+  <tr><td><code>GENMID.ADV</code></td><td><code>GENMID.ADV</code></td><td><code>resources/drivers/</code></td></tr>
+  <tr><td><code>MIDIFORM.EXE</code></td><td><code>MIDIFORM.EXE</code></td><td><code>resources/tools/</code></td></tr>
+</table>
+
+<h3>Paso 3 — Verificar la instalación</h3>
+<p>La estructura de directorios del editor debe quedar así:</p>
+<pre>resources/
+  drivers/
+    ADLIB.ADV       ← driver AdLib OPL2
+    ADLIB.AD        ← patches FM (renombrado de UW.AD o STDPATCH.AD)
+    MT32MPU.ADV     ← driver Roland MT-32
+    SBFM.ADV        ← driver Sound Blaster FM
+    PCSPKR.ADV      ← driver PC Speaker
+    GENMID.ADV      ← driver General MIDI
+  tools/
+    MIDIFORM.EXE    ← conversor MIDI→XMI (necesario para compilar con audio)</pre>
+
+<p>Una vez colocados, ve a <strong>Parámetros del juego → Audio</strong> en el editor y selecciona el hardware objetivo. El build copiará automáticamente el driver elegido junto al ejecutable del juego.</p>
+
+<h3>Paso 4 — Configurar el audio en el juego</h3>
+<p>En <strong>Módulo Parámetros → sección Audio</strong>:</p>
+<ol>
+  <li>Selecciona el hardware objetivo en el desplegable (<em>AdLib / OPL2</em> es el más compatible)</li>
+  <li>Ajusta el volumen inicial de música y SFX</li>
+  <li>Guarda con <kbd>Ctrl</kbd>+<kbd>S</kbd></li>
+</ol>
+<p>
+  Al hacer Build, el editor copia automáticamente el driver <code>.ADV</code> elegido y el banco de patches
+  al directorio de build, junto al <code>GAME.EXE</code> y los ficheros <code>.DAT</code>.
+</p>
+
+<h3>Drivers disponibles — comparativa</h3>
+<table>
+  <tr><th>Driver</th><th>Hardware</th><th>Calidad</th><th>Requiere patches .AD</th></tr>
+  <tr><td><code>ADLIB.ADV</code></td><td>AdLib, Sound Blaster, cualquier OPL2/OPL3</td><td>⭐⭐⭐ Buena, auténtica era 90s</td><td>✅ Sí — <code>ADLIB.AD</code></td></tr>
+  <tr><td><code>SBFM.ADV</code></td><td>Sound Blaster (OPL2 nativo)</td><td>⭐⭐⭐ Igual que AdLib en la mayoría de SB</td><td>✅ Sí</td></tr>
+  <tr><td><code>GENMID.ADV</code></td><td>General MIDI via MPU-401</td><td>⭐⭐⭐⭐ Excelente con módulo GM</td><td>❌ No</td></tr>
+  <tr><td><code>MT32MPU.ADV</code></td><td>Roland MT-32 / LAPC-I via MPU-401</td><td>⭐⭐⭐⭐⭐ Máxima calidad de época</td><td>❌ No</td></tr>
+  <tr><td><code>PCSPKR.ADV</code></td><td>PC Speaker (cualquier PC)</td><td>⭐ Melodía mono básica</td><td>❌ No</td></tr>
+</table>
+
+<div class="info">
+  <strong>Recomendación para DOSBox-X:</strong> usa <code>ADLIB.ADV</code> con <code>ADLIB.AD</code>.
+  DOSBox-X emula perfectamente el chip OPL2 y es el sonido más auténtico para aventuras de la época.
+  Para calidad máxima en emulador, configura DOSBox-X con <code>mpu401=intelligent</code> y usa <code>GENMID.ADV</code>.
+</div>
+
+<h3>Música en el juego — formato XMI</h3>
+<p>
+  AIL2 no toca ficheros <code>.MID</code> directamente. El build convierte automáticamente
+  todos los <code>.mid</code> de <code>audio/music/</code> a formato <strong>XMI</strong> (Extended MIDI)
+  usando <code>MIDIFORM.EXE</code>. Los XMI resultantes se empaquetan en <code>AUDIO.DAT</code>.
+  No necesitas hacer nada manualmente — el proceso es transparente.
+</p>
+<p>
+  Puedes controlar la música desde secuencias y scripts con los pasos:
+  <code>play_midi</code>, <code>stop_midi</code>, <code>set_music_volume</code>,
+  <code>set_music_tempo</code>, <code>fade_music_out</code>, <code>pause_midi</code>, <code>resume_midi</code>.
+</p>
+
+</section>
+
+</main>
+
+<script>
+  // Resaltar el enlace activo en el sidebar según la sección visible
+  const sections = document.querySelectorAll('section[id]')
+  const links    = document.querySelectorAll('nav a')
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'))
+        const a = document.querySelector(`nav a[href="#${e.target.id}"]`)
+        if (a) a.classList.add('active')
+      }
+    })
+  }, { threshold: 0.3, rootMargin: '-20% 0px -60% 0px' })
+  sections.forEach(s => obs.observe(s))
+</script>
+</body>
+</html>

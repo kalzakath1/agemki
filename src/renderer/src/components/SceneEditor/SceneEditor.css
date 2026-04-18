@@ -1,0 +1,155 @@
+.scene-editor {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ── Toolbar ─────────────────────────────────────────────────────────────── */
+.scene-toolbar {
+  height: 38px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.scene-toolbar__back {
+  font-size: 12px;
+  padding: 4px 8px;
+}
+
+.scene-toolbar__sep {
+  width: 1px;
+  height: 16px;
+  background: var(--border);
+  margin: 0 2px;
+}
+
+.scene-toolbar__title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.scene-toolbar__dirty {
+  color: var(--warning);
+}
+
+.scene-toolbar__zoom {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.scene-toolbar__zoom-val {
+  font-size: 12px;
+  color: var(--text-secondary);
+  min-width: 24px;
+  text-align: center;
+}
+
+.scene-toolbar__save {
+  font-size: 12px;
+  padding: 5px 12px;
+}
+
+.btn-primary--disabled {
+  opacity: 0.4;
+}
+
+/* ── Workspace ───────────────────────────────────────────────────────────── */
+.scene-workspace {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.scene-canvas-area {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ── Status bar ──────────────────────────────────────────────────────────── */
+.scene-statusbar {
+  height: 22px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  background: var(--bg-surface);
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.scene-statusbar .sep {
+  color: var(--border);
+}
+
+.scene-statusbar__spacer {
+  flex: 1;
+}
+
+.scene-statusbar__coords {
+  font-family: 'Courier New', monospace;
+  color: var(--accent);
+  min-width: 90px;
+  text-align: right;
+}
+
+/* ── Panel icon bar ──────────────────────────────────────────────────────── */
+.scene-panel-bar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 8px;
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  overflow-x: auto;
+}
+
+.scene-panel-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 5px 10px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.12s;
+  white-space: nowrap;
+  min-width: 56px;
+}
+
+.scene-panel-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.scene-panel-btn.active {
+  background: var(--bg-active);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.scene-panel-btn__icon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.scene-panel-btn__label {
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}

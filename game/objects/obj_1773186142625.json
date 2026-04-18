@@ -1,0 +1,22 @@
+{
+  "id": "obj_1773186142625",
+  "name": "muñeco",
+  "type": "pickable",
+  "detectable": true,
+  "states": [
+    {
+      "id": "state_default",
+      "name": "default",
+      "spriteFile": "SPRITE00.PCX",
+      "frameCount": 1,
+      "inventorySprite": "SPRITE00.PCX"
+    }
+  ],
+  "activeStateId": "state_default",
+  "verbActions": [],
+  "combinations": [],
+  "flags": [],
+  "coverageZone": null,
+  "created": "2026-03-10",
+  "modified": "2026-03-10"
+}

@@ -1,0 +1,21 @@
+{
+  "id": "seq_1775916020737",
+  "name": "prueba",
+  "steps": [
+    {
+      "id": "s_1775916023326",
+      "type": "play_rooms",
+      "roomId": "room_1776058025095",
+      "entryId": "entry_default",
+      "showUi": true,
+      "flag": "",
+      "value": "true"
+    },
+    {
+      "id": "s_1775916020737",
+      "type": "end_sequence"
+    }
+  ],
+  "created": "2026-04-11",
+  "modified": "2026-04-17"
+}

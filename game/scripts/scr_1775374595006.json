@@ -1,0 +1,30 @@
+{
+  "id": "scr_1775374595006",
+  "name": "entrada_muelle",
+  "trigger": {
+    "type": "room_enter_via",
+    "roomId": "room_1775300559756",
+    "entryId": "entry_1775300676087"
+  },
+  "instructions": [
+    {
+      "id": "i_1775914799555",
+      "type": "SET_CHAR_ROOM_POS",
+      "charId": "char_1772958237639",
+      "x": 12,
+      "y": 70,
+      "direction": "right",
+      "animName": ""
+    },
+    {
+      "id": "i_1775374707440",
+      "type": "WALK_CHAR",
+      "charId": "char_1772958237639",
+      "x": 320,
+      "y": 130,
+      "speed": 3
+    }
+  ],
+  "created": "2026-04-05",
+  "modified": "2026-04-11"
+}

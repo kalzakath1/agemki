@@ -1,0 +1,24 @@
+{
+  "id": "obj_1774707896050",
+  "name": "moneda",
+  "type": "pickable",
+  "detectable": true,
+  "states": [
+    {
+      "id": "state_default",
+      "name": "default",
+      "spriteFile": "MONEDA.PCX",
+      "frameCount": 1,
+      "inventorySprite": "MONEDA.PCX"
+    }
+  ],
+  "activeStateId": "state_default",
+  "verbActions": [],
+  "verbResponses": [],
+  "invVerbResponses": [],
+  "combinations": [],
+  "flags": [],
+  "coverageZone": null,
+  "created": "2026-03-28",
+  "modified": "2026-03-28"
+}

@@ -1,0 +1,27 @@
+{
+  "id": "seq_1773613011798",
+  "name": "aa",
+  "steps": [
+    {
+      "id": "s_1774711517920",
+      "type": "show_bg",
+      "bgFile": "BBLOGO.PCX",
+      "duration": 2,
+      "showUi": false
+    },
+    {
+      "id": "s_1773613995623",
+      "type": "play_rooms",
+      "roomId": "room_1775138136660",
+      "entryId": "entry_default",
+      "flag": "",
+      "value": "true"
+    },
+    {
+      "id": "s_1773613011798",
+      "type": "end_sequence"
+    }
+  ],
+  "created": "2026-03-15",
+  "modified": "2026-04-02"
+}

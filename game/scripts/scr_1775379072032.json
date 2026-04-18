@@ -1,0 +1,27 @@
+{
+  "id": "scr_1775379072032",
+  "name": "cerrar_puerta_scumm_bar",
+  "trigger": {
+    "type": "verb_object",
+    "verbId": "verbset_1772958154228_cerrar",
+    "objectId": "obj_1775378846170"
+  },
+  "instructions": [
+    {
+      "id": "i_1775379081523",
+      "type": "SET_OBJECT_STATE",
+      "objectId": "obj_1775378846170",
+      "stateId": "state_default",
+      "animLoop": false,
+      "waitAnim": false
+    },
+    {
+      "id": "i_1776024269785",
+      "type": "SET_EXIT_STATE",
+      "exitId": "exit_1776024050012",
+      "enabled": false
+    }
+  ],
+  "created": "2026-04-05",
+  "modified": "2026-04-12"
+}

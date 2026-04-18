@@ -1,0 +1,45 @@
+.scene-canvas-wrap {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg-base);
+}
+
+.scene-canvas {
+  display: block;
+  background: var(--bg-base);
+  outline: none;
+}
+
+/* ── Scrollbars ─────────────────────────────────────────────────── */
+.scene-sb {
+  position: absolute;
+  background: var(--bg-elevated, #1e1e2e);
+  border: 1px solid var(--border, #333);
+  z-index: 10;
+  overflow: hidden;
+}
+.scene-sb--h { flex-direction: row; }
+.scene-sb--v { flex-direction: column; }
+
+.scene-sb__thumb {
+  position: absolute;
+  background: var(--text-muted, #555);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.12s;
+  min-width: 20px;
+  min-height: 20px;
+}
+.scene-sb--h .scene-sb__thumb { top: 1px; bottom: 1px; }
+.scene-sb--v .scene-sb__thumb { left: 1px; right: 1px; }
+.scene-sb__thumb:hover { background: var(--text-secondary, #888); }
+
+.scene-sb__corner {
+  position: absolute;
+  background: var(--bg-elevated, #1e1e2e);
+  border-top: 1px solid var(--border, #333);
+  border-left: 1px solid var(--border, #333);
+  z-index: 11;
+}

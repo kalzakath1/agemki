@@ -1,0 +1,260 @@
+/* ── Layout ──────────────────────────────────────────────────────────────── */
+.editor-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--bg-base);
+}
+
+.editor-workspace {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+}
+
+/* ── Toolbar ─────────────────────────────────────────────────────────────── */
+.editor-toolbar {
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 8px;
+  flex-shrink: 0;
+  gap: 4px;
+}
+
+.editor-toolbar__left,
+.editor-toolbar__right {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.editor-toolbar__home {
+  font-size: 18px;
+  padding: 6px 8px;
+  flex-shrink: 0;
+}
+
+.editor-toolbar__sep {
+  width: 1px;
+  height: 20px;
+  background: var(--border);
+  margin: 0 6px;
+  flex-shrink: 0;
+}
+
+.editor-toolbar__game-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  cursor: text;
+  white-space: nowrap;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.editor-toolbar__game-name:hover {
+  background: var(--bg-hover);
+}
+
+.editor-toolbar__name-input {
+  font-size: 13px;
+  font-weight: 600;
+  background: var(--bg-input);
+  border: 1px solid var(--border-focus);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  padding: 3px 8px;
+  outline: none;
+  font-family: inherit;
+  width: 180px;
+}
+
+.editor-toolbar__module-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  background: transparent;
+  color: var(--text-secondary);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.editor-toolbar__module-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.editor-toolbar__module-btn.active {
+  background: var(--bg-active);
+  color: var(--accent);
+}
+
+/* ── Barra de estado ─────────────────────────────────────────────────────── */
+.editor-statusbar {
+  height: 24px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  background: var(--bg-surface);
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.editor-statusbar__sep {
+  color: var(--border);
+}
+
+.editor-statusbar__path {
+  font-family: 'Courier New', monospace;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+/* ── Selector de idioma global ───────────────────────────────────────────── */
+.lang-selector {
+  display: flex;
+  gap: 2px;
+  margin-left: 8px;
+}
+
+.lang-selector__btn {
+  padding: 3px 8px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: all 0.1s;
+}
+.lang-selector__btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+.lang-selector__btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+/* ── Botón ▶ Play ────────────────────────────────────────────────────────── */
+.editor-play-btn { padding:4px 14px; border-radius:5px; font-size:12px; font-weight:700; cursor:pointer; border:1px solid; transition:background 0.15s, color 0.15s; }
+.editor-play-btn--idle    { background:rgba(16,185,129,0.15); border-color:#10b981; color:#34d399; }
+.editor-play-btn--idle:hover { background:rgba(16,185,129,0.28); }
+.editor-play-btn--building{ background:rgba(245,158,11,0.15); border-color:#f59e0b; color:#fbbf24; cursor:wait; }
+.editor-play-btn--done    { background:rgba(16,185,129,0.25); border-color:#10b981; color:#34d399; }
+.editor-play-btn--error   { background:rgba(239,68,68,0.15);  border-color:#ef4444; color:#f87171; }
+.editor-play-btn:disabled { opacity:0.5; cursor:not-allowed; }
+
+/* ── Botón Ayuda ─────────────────────────────────────────────────────────── */
+.editor-help-btn { padding:4px 10px; font-size:12px; opacity:0.75; }
+.editor-help-btn:hover { opacity:1; }
+
+/* ── Botón Split ─────────────────────────────────────────────────────────── */
+.editor-split-btn {
+  padding: 4px 10px;
+  font-size: 15px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s;
+  line-height: 1;
+}
+.editor-split-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+.editor-split-btn.active { background: var(--bg-active); border-color: var(--accent); color: var(--accent); }
+
+/* ── Panel dividido ──────────────────────────────────────────────────────── */
+.editor-pane {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.editor-pane-divider {
+  width: 4px;
+  background: var(--border);
+  cursor: col-resize;
+  flex-shrink: 0;
+  transition: background 0.1s;
+}
+.editor-pane-divider:hover,
+.editor-pane-divider:active { background: var(--accent); }
+
+.editor-pane__header {
+  display: flex;
+  align-items: center;
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.editor-pane__tabs {
+  display: flex;
+  align-items: center;
+  overflow-x: auto;
+  flex: 1;
+  scrollbar-width: none;
+}
+.editor-pane__tabs::-webkit-scrollbar { display: none; }
+
+.editor-pane__tab {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 9px;
+  background: transparent;
+  color: var(--text-muted);
+  border: none;
+  border-bottom: 2px solid transparent;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.1s, border-color 0.1s, background 0.1s;
+  flex-shrink: 0;
+}
+.editor-pane__tab:hover { background: var(--bg-hover); color: var(--text-primary); }
+.editor-pane__tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  background: var(--bg-active);
+}
+
+.editor-pane__tab-label {
+  display: inline;
+}
+
+.editor-pane__close {
+  padding: 4px 8px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+.editor-pane__close:hover { color: var(--text-primary); background: var(--bg-hover); }
+
+.editor-pane__content {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+}

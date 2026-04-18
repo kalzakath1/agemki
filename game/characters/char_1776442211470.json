@@ -1,0 +1,168 @@
+{
+  "id": "char_1776442211470",
+  "isProtagonist": true,
+  "walkSpeed": 5,
+  "dialogueId": null,
+  "dialogueConditions": [
+    {
+      "flag": "",
+      "value": true,
+      "dialogueId": ""
+    }
+  ],
+  "inventory": [
+    {
+      "objectId": "obj_1773186142625",
+      "objectName": "muñeco voodoo"
+    }
+  ],
+  "animations": [
+    {
+      "id": "anim_1776442211470_ne4",
+      "name": "walk_frente",
+      "spriteFile": "SPRITESH.PCX",
+      "frameCount": 7,
+      "fps": 6,
+      "frameWidth": 24
+    },
+    {
+      "id": "anim_1776442211470_ann",
+      "name": "walk_der",
+      "spriteFile": "SPRITES2.PCX",
+      "frameCount": 8,
+      "fps": 6,
+      "frameWidth": 34,
+      "loop": true,
+      "flipH": false
+    },
+    {
+      "id": "anim_1776442211470_vuh",
+      "name": "walk_izq",
+      "spriteFile": "SPRITES2.PCX",
+      "frameCount": 8,
+      "fps": 6,
+      "flipH": true,
+      "flipV": false,
+      "frameWidth": 34
+    },
+    {
+      "id": "anim_1776442211470_1t6",
+      "name": "walk_arriba",
+      "spriteFile": "WALKUP.PCX",
+      "frameCount": 6,
+      "fps": 6,
+      "frameWidth": 23,
+      "flipV": false,
+      "flipH": false
+    },
+    {
+      "id": "anim_1776442211470_qsr",
+      "name": "idle_right",
+      "spriteFile": "IDLE_SID.PCX",
+      "frameCount": 1,
+      "fps": 6,
+      "frameWidth": 19
+    },
+    {
+      "id": "anim_1776442211470_3jg",
+      "name": "talking_up",
+      "spriteFile": "TALK_UP2.PCX",
+      "frameCount": 3,
+      "fps": 3,
+      "flipH": false,
+      "flipV": false,
+      "frameWidth": 20
+    },
+    {
+      "id": "anim_1776442211470_7uc",
+      "name": "talking_side_right",
+      "spriteFile": "T_SIDE.PCX",
+      "frameCount": 6,
+      "fps": 6,
+      "flipH": false,
+      "flipV": false,
+      "frameWidth": 21
+    },
+    {
+      "id": "anim_1776442211470_vgg",
+      "name": "talking_side_left",
+      "spriteFile": "T_SIDE.PCX",
+      "frameCount": 6,
+      "fps": 6,
+      "flipH": true,
+      "flipV": false,
+      "frameWidth": 21
+    },
+    {
+      "id": "anim_1776442211470_cwu",
+      "name": "idle_frente",
+      "spriteFile": "IDLE_F.PCX",
+      "frameCount": 1,
+      "fps": 6,
+      "flipH": false,
+      "flipV": false,
+      "frameWidth": 26
+    },
+    {
+      "id": "anim_1776442211470_1z7",
+      "name": "talking_front",
+      "spriteFile": "TALK_DO.PCX",
+      "frameCount": 6,
+      "fps": 6,
+      "flipH": false,
+      "flipV": false,
+      "frameWidth": 26
+    },
+    {
+      "id": "anim_1776442211470_6mc",
+      "name": "idle_up",
+      "spriteFile": "IDLE_UP.PCX",
+      "frameCount": 1,
+      "fps": 8,
+      "flipH": false,
+      "flipV": false,
+      "frameWidth": 22
+    },
+    {
+      "id": "anim_1776442211470_zw3",
+      "name": "idle_left",
+      "spriteFile": "IDLE_SID.PCX",
+      "frameCount": 1,
+      "fps": 8,
+      "flipH": true,
+      "flipV": false,
+      "frameWidth": 19
+    }
+  ],
+  "patrol": [],
+  "flags": [],
+  "created": "2026-04-17",
+  "modified": "2026-04-17",
+  "animRoles": {
+    "idle": "anim_1776442211470_qsr",
+    "walk_right": "anim_1776442211470_ann",
+    "walk_left": "anim_1776442211470_vuh",
+    "walk_up": "anim_1776442211470_1t6",
+    "walk_down": "anim_1776442211470_ne4",
+    "idle_down": "anim_1776442211470_cwu",
+    "idle_up": "anim_1776442211470_6mc",
+    "talk": "anim_1776442211470_7uc",
+    "talk_up": "anim_1776442211470_3jg",
+    "talk_down": "anim_1776442211470_1z7",
+    "talk_left": "anim_1776442211470_vgg"
+  },
+  "subtitleColor": 15,
+  "light": {
+    "enabled": false,
+    "offsetX": 8,
+    "offsetY": -40,
+    "radius": 100,
+    "intensity": 58,
+    "coneAngle": 70,
+    "flicker": {
+      "amplitude": 0,
+      "speed": 2
+    }
+  },
+  "faceSprite": "GUY_FAC2.PCX"
+}

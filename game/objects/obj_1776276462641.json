@@ -1,0 +1,29 @@
+{
+  "id": "obj_1776276462641",
+  "name": "pirata1",
+  "type": "scenery",
+  "detectable": false,
+  "states": [
+    {
+      "id": "state_default",
+      "name": "default",
+      "spriteFile": "PIRATA1.PCX",
+      "frameCount": 3,
+      "animated": true,
+      "fps": 3,
+      "bgLayer": true,
+      "animLoop": false,
+      "ambientIntervalMin": 3,
+      "ambientIntervalMax": 8
+    }
+  ],
+  "activeStateId": "state_default",
+  "verbActions": [],
+  "verbResponses": [],
+  "invVerbResponses": [],
+  "combinations": [],
+  "flags": [],
+  "coverageZone": null,
+  "created": "2026-04-15",
+  "modified": "2026-04-17"
+}

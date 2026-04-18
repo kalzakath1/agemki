@@ -1,0 +1,24 @@
+{
+  "id": "obj_1774707504982",
+  "name": "palo",
+  "type": "pickable",
+  "detectable": true,
+  "states": [
+    {
+      "id": "state_default",
+      "name": "default",
+      "spriteFile": "PALO.PCX",
+      "frameCount": 1,
+      "inventorySprite": "PALO.PCX"
+    }
+  ],
+  "activeStateId": "state_default",
+  "verbActions": [],
+  "verbResponses": [],
+  "invVerbResponses": [],
+  "combinations": [],
+  "flags": [],
+  "coverageZone": null,
+  "created": "2026-03-28",
+  "modified": "2026-03-28"
+}

@@ -1,0 +1,27 @@
+{
+  "id": "scr_1775378984690",
+  "name": "abrir_puerta_scumm_bar",
+  "trigger": {
+    "type": "verb_object",
+    "verbId": "verbset_1772958154228_abrir",
+    "objectId": "obj_1775378846170"
+  },
+  "instructions": [
+    {
+      "id": "i_1775379025668",
+      "type": "SET_OBJECT_STATE",
+      "objectId": "obj_1775378846170",
+      "stateId": "state_1775378858107",
+      "animLoop": false,
+      "waitAnim": false
+    },
+    {
+      "id": "i_1776024253950",
+      "type": "SET_EXIT_STATE",
+      "exitId": "exit_1776024050012",
+      "enabled": true
+    }
+  ],
+  "created": "2026-04-05",
+  "modified": "2026-04-12"
+}

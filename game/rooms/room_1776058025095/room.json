@@ -1,0 +1,743 @@
+{
+  "ambientLight": 100,
+  "lights": [],
+  "id": "room_1776058025095",
+  "name": "scummbar",
+  "backgroundFilePath": "SCUMMBAR.PCX",
+  "backgroundSize": {
+    "w": 640,
+    "h": 144
+  },
+  "fullscreen": false,
+  "scroll": {
+    "enabled": true,
+    "directionH": false,
+    "directionV": false,
+    "totalW": 320,
+    "totalH": 144,
+    "cameraSpeed": 1,
+    "halves": true
+  },
+  "camera": {
+    "followProtagonist": true,
+    "offsetX": 0,
+    "offsetY": 0
+  },
+  "walkmaps": [
+    {
+      "id": "wm_1776058025097",
+      "name": "default",
+      "shapes": [
+        {
+          "id": "shape_1776272044585",
+          "type": "rect",
+          "mode": "add",
+          "x": 67,
+          "y": 119,
+          "w": 240,
+          "h": 12
+        },
+        {
+          "id": "shape_1776272110349",
+          "type": "rect",
+          "mode": "sub",
+          "x": 62,
+          "y": 104,
+          "w": 249,
+          "h": 12
+        },
+        {
+          "id": "shape_1776272114990",
+          "type": "rect",
+          "mode": "sub",
+          "x": 55,
+          "y": 102,
+          "w": 256,
+          "h": 22
+        },
+        {
+          "id": "shape_1776272150668",
+          "type": "rect",
+          "mode": "add",
+          "x": 307,
+          "y": 124,
+          "w": 78,
+          "h": 8
+        },
+        {
+          "id": "shape_1776272156576",
+          "type": "rect",
+          "mode": "add",
+          "x": 335,
+          "y": 133,
+          "w": 55,
+          "h": 8
+        },
+        {
+          "id": "shape_1776272157742",
+          "type": "rect",
+          "mode": "add",
+          "x": 336,
+          "y": 131,
+          "w": 49,
+          "h": 6
+        },
+        {
+          "id": "shape_1776272160450",
+          "type": "rect",
+          "mode": "add",
+          "x": 334,
+          "y": 102,
+          "w": 39,
+          "h": 25
+        },
+        {
+          "id": "shape_1776272163554",
+          "type": "rect",
+          "mode": "add",
+          "x": 391,
+          "y": 133,
+          "w": 196,
+          "h": 7
+        },
+        {
+          "id": "shape_1776272167125",
+          "type": "rect",
+          "mode": "add",
+          "x": 388,
+          "y": 133,
+          "w": 204,
+          "h": 8
+        },
+        {
+          "id": "shape_1776272173171",
+          "type": "rect",
+          "mode": "add",
+          "x": 505,
+          "y": 106,
+          "w": 65,
+          "h": 30
+        },
+        {
+          "id": "shape_1776272195584",
+          "type": "polygon",
+          "mode": "add",
+          "points": [
+            {
+              "x": 479,
+              "y": 97
+            },
+            {
+              "x": 532,
+              "y": 130
+            },
+            {
+              "x": 477,
+              "y": 88
+            },
+            {
+              "x": 487,
+              "y": 88
+            },
+            {
+              "x": 504,
+              "y": 102
+            },
+            {
+              "x": 529,
+              "y": 107
+            },
+            {
+              "x": 563,
+              "y": 108
+            },
+            {
+              "x": 575,
+              "y": 109
+            },
+            {
+              "x": 600,
+              "y": 125
+            },
+            {
+              "x": 622,
+              "y": 139
+            },
+            {
+              "x": 570,
+              "y": 139
+            },
+            {
+              "x": 532,
+              "y": 130
+            }
+          ]
+        },
+        {
+          "id": "shape_1776272205000",
+          "type": "polygon",
+          "mode": "add",
+          "points": [
+            {
+              "x": 484,
+              "y": 95
+            },
+            {
+              "x": 373,
+              "y": 105
+            },
+            {
+              "x": 353,
+              "y": 95
+            },
+            {
+              "x": 479,
+              "y": 89
+            }
+          ]
+        },
+        {
+          "id": "shape_1776272207106",
+          "type": "polygon",
+          "mode": "add",
+          "points": [
+            {
+              "x": 490,
+              "y": 95
+            },
+            {
+              "x": 479,
+              "y": 94
+            },
+            {
+              "x": 477,
+              "y": 91
+            },
+            {
+              "x": 486,
+              "y": 90
+            }
+          ]
+        },
+        {
+          "id": "shape_1776272212428",
+          "type": "polygon",
+          "mode": "add",
+          "points": [
+            {
+              "x": 354,
+              "y": 96
+            },
+            {
+              "x": 352,
+              "y": 106
+            },
+            {
+              "x": 365,
+              "y": 107
+            },
+            {
+              "x": 370,
+              "y": 99
+            },
+            {
+              "x": 364,
+              "y": 97
+            }
+          ]
+        },
+        {
+          "id": "shape_1776272327394",
+          "type": "polygon",
+          "mode": "sub",
+          "points": [
+            {
+              "x": 382,
+              "y": 105
+            },
+            {
+              "x": 439,
+              "y": 97
+            },
+            {
+              "x": 442,
+              "y": 109
+            },
+            {
+              "x": 395,
+              "y": 114
+            }
+          ]
+        },
+        {
+          "id": "shape_1776272330948",
+          "type": "polygon",
+          "mode": "sub",
+          "points": [
+            {
+              "x": 395,
+              "y": 99
+            },
+            {
+              "x": 413,
+              "y": 99
+            },
+            {
+              "x": 414,
+              "y": 108
+            },
+            {
+              "x": 395,
+              "y": 109
+            }
+          ]
+        },
+        {
+          "id": "shape_1776272334189",
+          "type": "polygon",
+          "mode": "sub",
+          "points": [
+            {
+              "x": 387,
+              "y": 101
+            },
+            {
+              "x": 388,
+              "y": 107
+            },
+            {
+              "x": 401,
+              "y": 107
+            },
+            {
+              "x": 400,
+              "y": 101
+            }
+          ]
+        },
+        {
+          "id": "shape_1776272336896",
+          "type": "polygon",
+          "mode": "sub",
+          "points": [
+            {
+              "x": 385,
+              "y": 95
+            },
+            {
+              "x": 389,
+              "y": 106
+            },
+            {
+              "x": 402,
+              "y": 105
+            },
+            {
+              "x": 397,
+              "y": 95
+            },
+            {
+              "x": 391,
+              "y": 93
+            }
+          ]
+        },
+        {
+          "id": "shape_1776272343449",
+          "type": "polygon",
+          "mode": "add",
+          "points": [
+            {
+              "x": 374,
+              "y": 89
+            },
+            {
+              "x": 373,
+              "y": 103
+            },
+            {
+              "x": 415,
+              "y": 91
+            },
+            {
+              "x": 417,
+              "y": 85
+            }
+          ]
+        },
+        {
+          "id": "shape_1776272345836",
+          "type": "polygon",
+          "mode": "add",
+          "points": [
+            {
+              "x": 406,
+              "y": 90
+            },
+            {
+              "x": 421,
+              "y": 91
+            },
+            {
+              "x": 420,
+              "y": 95
+            },
+            {
+              "x": 407,
+              "y": 94
+            }
+          ]
+        },
+        {
+          "id": "shape_1776272354718",
+          "type": "polygon",
+          "mode": "add",
+          "points": [
+            {
+              "x": 485,
+              "y": 95
+            },
+            {
+              "x": 499,
+              "y": 102
+            },
+            {
+              "x": 499,
+              "y": 94
+            },
+            {
+              "x": 487,
+              "y": 88
+            }
+          ]
+        },
+        {
+          "id": "shape_1776276323453",
+          "type": "rect",
+          "mode": "sub",
+          "x": 374,
+          "y": 106,
+          "w": 4,
+          "h": 16
+        },
+        {
+          "id": "shape_1776276327360",
+          "type": "rect",
+          "mode": "sub",
+          "x": 349,
+          "y": 93,
+          "w": 17,
+          "h": 6
+        },
+        {
+          "id": "shape_1776276330111",
+          "type": "rect",
+          "mode": "sub",
+          "x": 374,
+          "y": 87,
+          "w": 41,
+          "h": 4
+        },
+        {
+          "id": "shape_1776276331163",
+          "type": "rect",
+          "mode": "sub",
+          "x": 407,
+          "y": 82,
+          "w": 11,
+          "h": 6
+        },
+        {
+          "id": "shape_1776276333401",
+          "type": "rect",
+          "mode": "sub",
+          "x": 390,
+          "y": 81,
+          "w": 41,
+          "h": 9
+        },
+        {
+          "id": "shape_1776276339364",
+          "type": "rect",
+          "mode": "sub",
+          "x": 477,
+          "y": 94,
+          "w": 10,
+          "h": 4
+        },
+        {
+          "id": "shape_1776276351176",
+          "type": "rect",
+          "mode": "sub",
+          "x": 494,
+          "y": 101,
+          "w": 5,
+          "h": 4
+        },
+        {
+          "id": "shape_1776276353053",
+          "type": "rect",
+          "mode": "sub",
+          "x": 497,
+          "y": 105,
+          "w": 6,
+          "h": 5
+        },
+        {
+          "id": "shape_1776276355897",
+          "type": "rect",
+          "mode": "sub",
+          "x": 439,
+          "y": 98,
+          "w": 15,
+          "h": 3
+        },
+        {
+          "id": "shape_1776276360258",
+          "type": "rect",
+          "mode": "sub",
+          "x": 381,
+          "y": 98,
+          "w": 59,
+          "h": 5
+        },
+        {
+          "id": "shape_1776276363931",
+          "type": "rect",
+          "mode": "sub",
+          "x": 377,
+          "y": 99,
+          "w": 16,
+          "h": 10
+        },
+        {
+          "id": "shape_1776276370337",
+          "type": "rect",
+          "mode": "sub",
+          "x": 390,
+          "y": 130,
+          "w": 113,
+          "h": 6
+        },
+        {
+          "id": "shape_1776276393797",
+          "type": "rect",
+          "mode": "add",
+          "x": 68,
+          "y": 121,
+          "w": 14,
+          "h": 5
+        },
+        {
+          "id": "shape_1776276397143",
+          "type": "rect",
+          "mode": "sub",
+          "x": 64,
+          "y": 127,
+          "w": 6,
+          "h": 6
+        },
+        {
+          "id": "shape_1776276399215",
+          "type": "rect",
+          "mode": "sub",
+          "x": 64,
+          "y": 125,
+          "w": 12,
+          "h": 15
+        },
+        {
+          "id": "shape_1776276402235",
+          "type": "rect",
+          "mode": "sub",
+          "x": 75,
+          "y": 131,
+          "w": 3,
+          "h": 8
+        },
+        {
+          "id": "shape_1776276404096",
+          "type": "rect",
+          "mode": "sub",
+          "x": 75,
+          "y": 129,
+          "w": 16,
+          "h": 12
+        },
+        {
+          "id": "shape_1776276951165",
+          "type": "rect",
+          "mode": "add",
+          "x": 79,
+          "y": 126,
+          "w": 33,
+          "h": 3
+        },
+        {
+          "id": "shape_1776277022435",
+          "type": "rect",
+          "mode": "add",
+          "x": 45,
+          "y": 120,
+          "w": 33,
+          "h": 5
+        },
+        {
+          "id": "shape_1776279945269",
+          "type": "rect",
+          "mode": "add",
+          "x": 47,
+          "y": 124,
+          "w": 32,
+          "h": 7
+        },
+        {
+          "id": "shape_1776279955402",
+          "type": "rect",
+          "mode": "sub",
+          "x": 37,
+          "y": 130,
+          "w": 42,
+          "h": 4
+        },
+        {
+          "id": "shape_1776279978268",
+          "type": "rect",
+          "mode": "add",
+          "x": 48,
+          "y": 118,
+          "w": 17,
+          "h": 4
+        },
+        {
+          "id": "shape_1776280102627",
+          "type": "rect",
+          "mode": "add",
+          "x": 77,
+          "y": 128,
+          "w": 3,
+          "h": 3
+        }
+      ]
+    }
+  ],
+  "activeWalkmapId": "wm_1776058025097",
+  "objects": [
+    {
+      "id": "inst_1776267226365",
+      "objectId": "obj_1776267158764",
+      "objectName": "pirata_lampara",
+      "x": 184,
+      "y": 71,
+      "zOrder": 0,
+      "stateOverride": null,
+      "pickable": false,
+      "invGfxId": "",
+      "states": []
+    },
+    {
+      "id": "inst_1776271727714",
+      "objectId": "obj_1776271697000",
+      "objectName": "cadena lampara scumm bar",
+      "x": 180,
+      "y": 24,
+      "zOrder": 0,
+      "stateOverride": null,
+      "pickable": false,
+      "invGfxId": "",
+      "states": []
+    },
+    {
+      "id": "inst_1776276653664",
+      "objectId": "obj_1776276462641",
+      "objectName": "pirata1",
+      "x": 100,
+      "y": 128,
+      "zOrder": 0,
+      "stateOverride": null,
+      "pickable": false,
+      "invGfxId": "",
+      "states": []
+    },
+    {
+      "id": "inst_1776356262359",
+      "objectId": "obj_1776356219562",
+      "objectName": "pirata2_bebe_fondo",
+      "x": 296,
+      "y": 109,
+      "zOrder": 0,
+      "stateOverride": null,
+      "pickable": false,
+      "invGfxId": "",
+      "states": []
+    },
+    {
+      "id": "inst_1776356799702",
+      "objectId": "obj_1776356690011",
+      "objectName": "puerta_scumm_interior",
+      "x": 52,
+      "y": 120,
+      "zOrder": 0,
+      "stateOverride": null,
+      "pickable": false,
+      "invGfxId": "",
+      "states": []
+    },
+    {
+      "id": "inst_1776360381242",
+      "objectId": "obj_1776360306222",
+      "objectName": "pirata_loom",
+      "x": 264,
+      "y": 136,
+      "zOrder": 0,
+      "stateOverride": null,
+      "pickable": false,
+      "invGfxId": "",
+      "states": []
+    }
+  ],
+  "characters": [],
+  "exits": [
+    {
+      "id": "exit_1776058051306",
+      "name": "puerta",
+      "triggerZone": {
+        "x": 31,
+        "y": 74,
+        "w": 41,
+        "h": 49
+      },
+      "targetRoom": "room_1775300559756",
+      "targetEntry": "entry_1776058087371",
+      "condition": null,
+      "transitionAnimation": null
+    },
+    {
+      "id": "exit_1776058128925",
+      "name": "cocina",
+      "triggerZone": {
+        "x": 595,
+        "y": 74,
+        "w": 25,
+        "h": 57
+      },
+      "targetRoom": null,
+      "targetEntry": null,
+      "condition": null,
+      "transitionAnimation": null
+    }
+  ],
+  "entries": [
+    {
+      "id": "entry_default",
+      "x": 70,
+      "y": 122
+    }
+  ],
+  "effects": [],
+  "audio": {
+    "midi": "scumm.mid"
+  },
+  "created": "2026-04-13",
+  "modified": "2026-04-18"
+}

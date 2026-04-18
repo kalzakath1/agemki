@@ -1,0 +1,33 @@
+{
+  "name": "agemki",
+  "version": "0.1.0",
+  "description": "ACHUS Game Engine Mark I (AGEMKI) — DOS adventure game engine and editor",
+  "main": "out/main/index.js",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "preview": "electron-vite preview",
+    "dist": "electron-builder"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "electron": "^33.0.0",
+    "electron-builder": "^25.1.8",
+    "electron-vite": "^2.3.0",
+    "vite": "^5.4.11"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "zustand": "^5.0.1"
+  },
+  "build": {
+    "appId": "com.agemki.app",
+    "productName": "AGEMKI",
+    "directories": { "output": "dist" },
+    "files": ["out/**/*"],
+    "win": { "target": "nsis" },
+    "mac": { "target": "dmg" },
+    "linux": { "target": "AppImage" }
+  }
+}

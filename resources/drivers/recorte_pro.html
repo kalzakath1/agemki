@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Spritesheet Tool - Uniform Frames</title>
+<style>
+body { font-family: Arial; background:#1e1e1e; color:#eee; margin:20px;}
+canvas { border:1px solid #555; background:#111; margin-top:10px;}
+.controls,.frameControls{margin:10px 0;}
+button,input,select{margin:5px;padding:6px;}
+#frameEditor{border:1px solid #888;background:#222;margin-top:10px;}
+</style>
+</head>
+<body>
+
+<h2>Spritesheet Tool - Uniform Frames</h2>
+<input type="file" id="file">
+
+<div class="controls">
+<button id="detect">Detect Sprites</button>
+Zoom Main <input type="range" id="zoom" min="1" max="10" value="1"><span id="zoomValue">1x</span>
+Align <select id="align"><option value="center">center</option><option value="bottom">bottom</option><option value="top">top</option></select>
+<button id="exportPNG">Export PNG</button>
+<button id="exportJSON">Export JSON</button>
+</div>
+
+<h3>Main Canvas</h3>
+<canvas id="canvas"></canvas>
+
+<h3>Animation Preview</h3>
+Zoom <input type="range" id="previewZoom" min="1" max="10" value="1"><span id="previewZoomValue">1x</span><br>
+<canvas id="preview"></canvas><br>
+FPS <input type="range" id="fps" min="1" max="30" value="10"><span id="fpsValue">10</span>
+<button id="play">Play</button>
+<button id="stop">Stop</button>
+
+<h3>Frame Editor</h3>
+<canvas id="frameEditor" width="800" height="200"></canvas>
+<div class="frameControls">
+<button id="moveLeft">◀ Move Left</button>
+<button id="moveRight">Move Right ▶</button>
+<button id="duplicate">Duplicate</button>
+<button id="delete">Delete</button>
+</div>
+
+<script>
+
+const canvas=document.getElementById("canvas"), ctx=canvas.getContext("2d");
+const preview=document.getElementById("preview"), pctx=preview.getContext("2d");
+const frameEditor=document.getElementById("frameEditor"), fctx=frameEditor.getContext("2d");
+
+let img=null,frames=[],finalFrames=[],selectedFrameIndex=-1;
+let zoom=1,previewZoom=1,playing=false,frameIndex=0,fps=10,timer=null;
+let nextFrameID=0,maxFrameW=0,maxFrameH=0;
+
+const zoomSlider=document.getElementById("zoom"),zoomLabel=document.getElementById("zoomValue");
+zoomSlider.oninput=e=>{zoom=parseInt(e.target.value);zoomLabel.textContent=zoom+"x";draw();}
+
+const previewSlider=document.getElementById("previewZoom"),previewLabel=document.getElementById("previewZoomValue");
+previewSlider.oninput=e=>{previewZoom=parseInt(e.target.value);previewLabel.textContent=previewZoom+"x";drawPreview();}
+
+const fpsSlider=document.getElementById("fps"),fpsLabel=document.getElementById("fpsValue");
+fpsSlider.oninput=e=>{fps=parseInt(e.target.value);fpsLabel.textContent=fps;if(playing){stopAnimation();startAnimation();}}
+
+document.getElementById("file").onchange=e=>{
+const file=e.target.files[0];if(!file)return;
+const reader=new FileReader();
+reader.onload=ev=>{
+img=new Image();
+img.onload=()=>{frames=[];finalFrames=[];draw();drawFrameEditor();}
+img.src=ev.target.result;
+}
+reader.readAsDataURL(file);
+}
+
+function draw(){
+if(!img)return;
+canvas.width=img.width*zoom;
+canvas.height=img.height*zoom;
+ctx.setTransform(zoom,0,0,zoom,0,0);
+ctx.imageSmoothingEnabled=false;
+ctx.clearRect(0,0,canvas.width,canvas.height);
+ctx.drawImage(img,0,0);
+ctx.strokeStyle="red";
+ctx.lineWidth=2/zoom;
+frames.forEach(f=>ctx.strokeRect(f.x,f.y,f.w,f.h));
+}
+
+document.getElementById("detect").onclick=()=>{
+
+if(!img)return;
+
+frames=[];
+finalFrames=[];
+nextFrameID=0;
+maxFrameW=0;
+maxFrameH=0;
+
+const temp=document.createElement("canvas");
+temp.width=img.width;
+temp.height=img.height;
+const tctx=temp.getContext("2d");
+tctx.drawImage(img,0,0);
+
+const data=tctx.getImageData(0,0,img.width,img.height).data;
+
+const visited=new Uint8Array(img.width*img.height);
+
+const isBackground=(x,y)=>{
+const i=(y*img.width+x)*4;
+const r=data[i];
+const g=data[i+1];
+const b=data[i+2];
+const a=data[i+3];
+
+return a===0 || (r===255 && g===0 && b===255);
+}
+
+const floodFill=(sx,sy)=>{
+
+let stack=[[sx,sy]];
+let minX=sx,minY=sy,maxX=sx,maxY=sy;
+
+while(stack.length){
+
+const [x,y]=stack.pop();
+const i=y*img.width+x;
+
+if(visited[i])continue;
+
+visited[i]=1;
+
+if(isBackground(x,y))continue;
+
+minX=Math.min(minX,x);
+minY=Math.min(minY,y);
+maxX=Math.max(maxX,x);
+maxY=Math.max(maxY,y);
+
+const dirs=[[1,0],[-1,0],[0,1],[0,-1]];
+
+for(const d of dirs){
+
+const nx=x+d[0];
+const ny=y+d[1];
+
+if(nx<0||ny<0||nx>=img.width||ny>=img.height)continue;
+
+const ni=ny*img.width+nx;
+
+if(visited[ni])continue;
+
+if(isBackground(nx,ny))continue;
+
+stack.push([nx,ny]);
+
+}
+
+}
+
+return {x:minX,y:minY,w:maxX-minX+1,h:maxY-minY+1};
+
+}
+
+for(let y=0;y<img.height;y++)
+for(let x=0;x<img.width;x++){
+
+const i=y*img.width+x;
+
+if(visited[i])continue;
+
+if(isBackground(x,y))continue;
+
+const box=floodFill(x,y);
+
+if(box.w>1 && box.h>1){
+
+const f={id:nextFrameID++,x:box.x,y:box.y,w:box.w,h:box.h};
+
+frames.push(f);
+
+if(f.w>maxFrameW)maxFrameW=f.w;
+if(f.h>maxFrameH)maxFrameH=f.h;
+
+}
+
+}
+
+generateFinalFrames();
+selectedFrameIndex=-1;
+arrangeFramesEditor();
+draw();
+drawFrameEditor();
+
+}
+
+function generateFinalFrames(){
+
+finalFrames=frames.map(f=>{
+
+const canvasF=document.createElement("canvas");
+
+canvasF.width=maxFrameW+2;
+canvasF.height=maxFrameH+2;
+
+const ctxF=canvasF.getContext("2d");
+
+ctxF.clearRect(0,0,canvasF.width,canvasF.height);
+
+const offsetX=Math.floor((canvasF.width-f.w)/2);
+const offsetY=Math.floor((canvasF.height-f.h)/2);
+
+ctxF.drawImage(img,f.x,f.y,f.w,f.h,offsetX,offsetY,f.w,f.h);
+
+return {...f,canvas:canvasF,w:canvasF.width,h:canvasF.height};
+
+});
+
+}
+
+function arrangeFramesEditor(){
+
+let x=5,y=5,spacing=5,rowHeight=100;
+
+finalFrames.forEach(f=>{
+
+f.fx=x;
+f.fy=y;
+
+f.displayW=Math.min(f.w,80);
+f.displayH=f.displayW*f.h/f.w;
+
+x+=f.displayW+spacing;
+
+if(x>frameEditor.width-100){
+
+x=5;
+y+=rowHeight;
+
+}
+
+});
+
+}
+
+function drawFrameEditor(){
+
+fctx.clearRect(0,0,frameEditor.width,frameEditor.height);
+
+finalFrames.forEach((f,i)=>{
+
+fctx.strokeStyle=(i===selectedFrameIndex)?"orange":"#555";
+fctx.lineWidth=2;
+
+fctx.strokeRect(f.fx,f.fy,f.displayW,f.displayH);
+
+fctx.drawImage(f.canvas,f.fx,f.fy,f.displayW,f.displayH);
+
+});
+
+}
+
+frameEditor.onclick=e=>{
+
+const rect=frameEditor.getBoundingClientRect();
+
+const mx=e.clientX-rect.left;
+const my=e.clientY-rect.top;
+
+selectedFrameIndex=-1;
+
+for(let i=finalFrames.length-1;i>=0;i--){
+
+const f=finalFrames[i];
+
+if(mx>=f.fx&&mx<=f.fx+f.displayW&&my>=f.fy&&my<=f.fy+f.displayH){
+
+selectedFrameIndex=i;
+break;
+
+}
+
+}
+
+drawFrameEditor();
+
+}
+
+document.getElementById("duplicate").onclick=()=>{
+
+if(selectedFrameIndex>=0){
+
+const f=finalFrames[selectedFrameIndex];
+
+const canvasF=document.createElement("canvas");
+
+canvasF.width=f.w;
+canvasF.height=f.h;
+
+canvasF.getContext("2d").drawImage(f.canvas,0,0);
+
+const copy={...f,id:nextFrameID++,canvas:canvasF};
+
+finalFrames.splice(selectedFrameIndex+1,0,copy);
+
+selectedFrameIndex++;
+
+arrangeFramesEditor();
+drawFrameEditor();
+
+}
+
+}
+
+document.getElementById("delete").onclick=()=>{
+
+if(selectedFrameIndex>=0){
+
+finalFrames.splice(selectedFrameIndex,1);
+
+selectedFrameIndex=-1;
+
+arrangeFramesEditor();
+drawFrameEditor();
+
+}
+
+}
+
+document.getElementById("moveLeft").onclick=()=>{
+
+if(selectedFrameIndex>0){
+
+const tmp=finalFrames[selectedFrameIndex-1];
+
+finalFrames[selectedFrameIndex-1]=finalFrames[selectedFrameIndex];
+
+finalFrames[selectedFrameIndex]=tmp;
+
+selectedFrameIndex--;
+
+arrangeFramesEditor();
+drawFrameEditor();
+
+}
+
+}
+
+document.getElementById("moveRight").onclick=()=>{
+
+if(selectedFrameIndex>=0 && selectedFrameIndex<finalFrames.length-1){
+
+const tmp=finalFrames[selectedFrameIndex+1];
+
+finalFrames[selectedFrameIndex+1]=finalFrames[selectedFrameIndex];
+
+finalFrames[selectedFrameIndex]=tmp;
+
+selectedFrameIndex++;
+
+arrangeFramesEditor();
+drawFrameEditor();
+
+}
+
+}
+
+document.getElementById("exportPNG").onclick=()=>{
+
+if(finalFrames.length==0)return;
+
+const out=document.createElement("canvas");
+const octx=out.getContext("2d");
+
+out.width=finalFrames[0].w*finalFrames.length;
+out.height=finalFrames[0].h;
+
+finalFrames.forEach((f,i)=>octx.drawImage(f.canvas,i*f.w,0));
+
+const link=document.createElement("a");
+
+link.download="spritesheet.png";
+link.href=out.toDataURL("image/png");
+
+link.click();
+
+}
+
+document.getElementById("exportJSON").onclick=()=>{
+
+if(finalFrames.length==0)return;
+
+const fw=finalFrames[0].w;
+const fh=finalFrames[0].h;
+
+let json={frameWidth:fw,frameHeight:fh,frames:[]};
+
+finalFrames.forEach((f,i)=>{
+
+json.frames.push({index:i,x:i*fw,y:0,w:fw,h:fh});
+
+});
+
+const blob=new Blob([JSON.stringify(json,null,2)],{type:"application/json"});
+
+const a=document.createElement("a");
+
+a.download="sprites.json";
+a.href=URL.createObjectURL(blob);
+
+a.click();
+
+}
+
+document.getElementById("play").onclick=startAnimation;
+document.getElementById("stop").onclick=stopAnimation;
+
+function startAnimation(){
+
+if(finalFrames.length==0)return;
+
+const f=finalFrames[0];
+
+preview.width=f.w*previewZoom;
+preview.height=f.h*previewZoom;
+
+frameIndex=0;
+
+playing=true;
+
+timer=setInterval(()=>{
+
+drawPreview();
+
+frameIndex++;
+
+if(frameIndex>=finalFrames.length)frameIndex=0;
+
+},1000/fps);
+
+}
+
+function stopAnimation(){
+
+playing=false;
+
+if(timer){
+
+clearInterval(timer);
+timer=null;
+
+}
+
+}
+
+function drawPreview(){
+
+if(finalFrames.length==0)return;
+
+const f=finalFrames[frameIndex];
+
+preview.width=f.w*previewZoom;
+preview.height=f.h*previewZoom;
+
+pctx.setTransform(previewZoom,0,0,previewZoom,0,0);
+
+pctx.clearRect(0,0,preview.width,preview.height);
+
+pctx.drawImage(f.canvas,0,0);
+
+}
+
+</script>
+</body>
+</html>

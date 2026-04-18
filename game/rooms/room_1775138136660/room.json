@@ -1,0 +1,63 @@
+{
+  "ambientLight": 100,
+  "lights": [],
+  "id": "room_1775138136660",
+  "name": "intro_logo",
+  "backgroundFilePath": "BBLOGO.PCX",
+  "backgroundSize": {
+    "w": 320,
+    "h": 200
+  },
+  "scroll": {
+    "enabled": false,
+    "directionH": true,
+    "directionV": false,
+    "totalW": 320,
+    "totalH": 144,
+    "cameraSpeed": 1
+  },
+  "camera": {
+    "followProtagonist": true,
+    "offsetX": 0,
+    "offsetY": 0
+  },
+  "walkmaps": [
+    {
+      "id": "wm_1775138136661",
+      "name": "default",
+      "shapes": []
+    }
+  ],
+  "activeWalkmapId": "wm_1775138136661",
+  "objects": [
+    {
+      "id": "inst_1775138657830",
+      "objectId": "obj_1775138600519",
+      "objectName": "destello",
+      "x": 74,
+      "y": 27,
+      "zOrder": 0,
+      "stateOverride": null,
+      "pickable": false,
+      "invGfxId": "",
+      "states": []
+    }
+  ],
+  "characters": [],
+  "exits": [],
+  "entries": [
+    {
+      "id": "entry_default",
+      "x": 160,
+      "y": 100
+    }
+  ],
+  "effects": [],
+  "audio": {
+    "midi": "intro.mid",
+    "loop": false
+  },
+  "created": "2026-04-02",
+  "modified": "2026-04-02",
+  "fullscreen": true
+}

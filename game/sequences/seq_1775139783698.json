@@ -1,0 +1,45 @@
+{
+  "id": "seq_1775139783698",
+  "name": "MI",
+  "steps": [
+    {
+      "id": "s_1775300643386",
+      "type": "play_rooms",
+      "roomId": "room_1775300559756",
+      "entryId": "entry_1775300676087",
+      "showUi": true,
+      "flag": "",
+      "value": "true"
+    },
+    {
+      "id": "s_1775155097949",
+      "type": "play_rooms",
+      "roomId": "room_1775138136660",
+      "entryId": "entry_default",
+      "flag": "salir_intro",
+      "value": "true",
+      "showUi": false
+    },
+    {
+      "id": "s_1775172294821",
+      "type": "set_flag",
+      "flag": "conversa_atalaya",
+      "value": "true"
+    },
+    {
+      "id": "s_1775170548556",
+      "type": "play_rooms",
+      "roomId": "room_1774718575218",
+      "entryId": "entry_default",
+      "flag": "conversa_atalaya",
+      "value": "false",
+      "showUi": false
+    },
+    {
+      "id": "s_1775139783698",
+      "type": "end_sequence"
+    }
+  ],
+  "created": "2026-04-02",
+  "modified": "2026-04-11"
+}

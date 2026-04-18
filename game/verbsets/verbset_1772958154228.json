@@ -1,0 +1,110 @@
+{
+  "id": "verbset_1772958154228",
+  "name": "default",
+  "verbs": [
+    {
+      "id": "verbset_1772958154228_dar",
+      "icon": "🤝",
+      "isMovement": false,
+      "isDefault": false,
+      "order": 0,
+      "approachObject": true,
+      "normalColor": 177,
+      "hoverColor": 178
+    },
+    {
+      "id": "verbset_1772958154228_empujar",
+      "icon": "👉",
+      "isMovement": false,
+      "isDefault": false,
+      "order": 1,
+      "approachObject": true,
+      "normalColor": 177,
+      "hoverColor": 178
+    },
+    {
+      "id": "verbset_1772958154228_usar",
+      "icon": "⚙️",
+      "isMovement": false,
+      "isDefault": false,
+      "order": 2,
+      "approachObject": true,
+      "normalColor": 177,
+      "hoverColor": 178
+    },
+    {
+      "id": "verbset_1772958154228_abrir",
+      "icon": "🚪",
+      "isMovement": false,
+      "isDefault": false,
+      "order": 3,
+      "approachObject": true,
+      "normalColor": 177,
+      "hoverColor": 178
+    },
+    {
+      "id": "verbset_1772958154228_cerrar",
+      "icon": "🔒",
+      "isMovement": false,
+      "isDefault": false,
+      "order": 4,
+      "approachObject": true,
+      "isPickup": false,
+      "normalColor": 177,
+      "hoverColor": 178
+    },
+    {
+      "id": "verbset_1772958154228_coger",
+      "icon": "🖐",
+      "isMovement": false,
+      "isDefault": false,
+      "order": 5,
+      "approachObject": true,
+      "isPickup": true,
+      "normalColor": 177,
+      "hoverColor": 178
+    },
+    {
+      "id": "verbset_1772958154228_mirar",
+      "icon": "👁",
+      "isMovement": false,
+      "isDefault": false,
+      "order": 6,
+      "approachObject": true,
+      "normalColor": 177,
+      "hoverColor": 178
+    },
+    {
+      "id": "verbset_1772958154228_hablar",
+      "icon": "💬",
+      "isMovement": false,
+      "isDefault": false,
+      "order": 7,
+      "approachObject": true,
+      "normalColor": 177,
+      "hoverColor": 178
+    },
+    {
+      "id": "verbset_1772958154228_tirar",
+      "icon": "👈",
+      "isMovement": false,
+      "isDefault": false,
+      "order": 8,
+      "approachObject": true,
+      "normalColor": 177,
+      "hoverColor": 178
+    },
+    {
+      "id": "verbset_1772958154228_ira",
+      "icon": "👟",
+      "isMovement": true,
+      "isDefault": true,
+      "order": 9,
+      "approachObject": true,
+      "normalColor": 177,
+      "hoverColor": 178
+    }
+  ],
+  "created": "2026-03-08",
+  "modified": "2026-04-09"
+}

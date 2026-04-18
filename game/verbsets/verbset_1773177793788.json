@@ -1,0 +1,88 @@
+{
+  "id": "verbset_1773177793788",
+  "name": "accion",
+  "verbs": [
+    {
+      "id": "verbset_1773177793788_mirar",
+      "icon": "👁",
+      "isMovement": false,
+      "isDefault": false,
+      "approachObject": true,
+      "order": 0
+    },
+    {
+      "id": "verbset_1773177793788_coger",
+      "icon": "🖐",
+      "isMovement": false,
+      "isDefault": false,
+      "approachObject": true,
+      "order": 1
+    },
+    {
+      "id": "verbset_1773177793788_usar",
+      "icon": "⚙️",
+      "isMovement": false,
+      "isDefault": true,
+      "approachObject": true,
+      "order": 2
+    },
+    {
+      "id": "verbset_1773177793788_abrir",
+      "icon": "🚪",
+      "isMovement": false,
+      "isDefault": false,
+      "approachObject": true,
+      "order": 3
+    },
+    {
+      "id": "verbset_1773177793788_cerrar",
+      "icon": "🔒",
+      "isMovement": false,
+      "isDefault": false,
+      "approachObject": true,
+      "order": 4
+    },
+    {
+      "id": "verbset_1773177793788_empujar",
+      "icon": "👉",
+      "isMovement": false,
+      "isDefault": false,
+      "approachObject": true,
+      "order": 5
+    },
+    {
+      "id": "verbset_1773177793788_tirar",
+      "icon": "👈",
+      "isMovement": false,
+      "isDefault": false,
+      "approachObject": true,
+      "order": 6
+    },
+    {
+      "id": "verbset_1773177793788_hablar",
+      "icon": "💬",
+      "isMovement": false,
+      "isDefault": false,
+      "approachObject": true,
+      "order": 7
+    },
+    {
+      "id": "verbset_1773177793788_dar",
+      "icon": "🤝",
+      "isMovement": false,
+      "isDefault": false,
+      "approachObject": true,
+      "order": 8
+    },
+    {
+      "id": "verbset_1773177793788_ira",
+      "icon": "👟",
+      "isMovement": true,
+      "isDefault": false,
+      "approachObject": false,
+      "order": 9
+    }
+  ],
+  "created": "2026-03-10",
+  "modified": "2026-03-10"
+}

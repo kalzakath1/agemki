@@ -1,0 +1,32 @@
+{
+  "id": "dlg_1775373985351",
+  "name": "mirar_poster",
+  "actorId": null,
+  "nodes": [
+    {
+      "id": "node_start",
+      "type": "line",
+      "actorId": "char_1772958237639",
+      "textKey": "dlg.dlg_1775373985351.start",
+      "_x": 300,
+      "_y": 80,
+      "animation": "anim_1774856492602",
+      "direction": "anim_1774873888517"
+    },
+    {
+      "id": "node_end",
+      "type": "end",
+      "_x": 300,
+      "_y": 240
+    }
+  ],
+  "connections": [
+    {
+      "from": "node_start",
+      "to": "node_end",
+      "choiceIndex": null
+    }
+  ],
+  "created": "2026-04-05",
+  "modified": "2026-04-05"
+}

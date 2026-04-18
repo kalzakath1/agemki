@@ -1,0 +1,28 @@
+# Dependencias
+node_modules/
+
+# Build / output
+out/
+dist/
+build/
+*.exe
+*.obj
+*.map
+*.dat
+game_config.h
+
+# Logs de compilación
+build/build.log
+build/watcom.log
+build/ENGINE.LOG
+build/AUDIO.LOG
+
+# Temporales del editor
+~dbxtemp.conf
+{src
+paleta.pal
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini

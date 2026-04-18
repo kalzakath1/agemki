@@ -1,0 +1,432 @@
+{
+  "ambientLight": 100,
+  "lights": [],
+  "id": "room_1774718575218",
+  "name": "atalaya",
+  "backgroundFilePath": "ROOM_038.PCX",
+  "backgroundSize": {
+    "w": 320,
+    "h": 144
+  },
+  "scroll": {
+    "enabled": false,
+    "directionH": true,
+    "directionV": false,
+    "totalW": 320,
+    "totalH": 144,
+    "cameraSpeed": 1
+  },
+  "camera": {
+    "followProtagonist": true,
+    "offsetX": 0,
+    "offsetY": 0
+  },
+  "walkmaps": [
+    {
+      "id": "wm_1774718575219",
+      "name": "default",
+      "shapes": [
+        {
+          "id": "shape_1774718821107",
+          "type": "rect",
+          "mode": "add",
+          "x": 221,
+          "y": 88,
+          "w": 73,
+          "h": 26
+        },
+        {
+          "id": "shape_1774718834853",
+          "type": "polygon",
+          "mode": "add",
+          "points": [
+            {
+              "x": 222,
+              "y": 113
+            },
+            {
+              "x": 222,
+              "y": 135
+            },
+            {
+              "x": 235,
+              "y": 134
+            },
+            {
+              "x": 242,
+              "y": 140
+            },
+            {
+              "x": 264,
+              "y": 139
+            },
+            {
+              "x": 263,
+              "y": 116
+            },
+            {
+              "x": 270,
+              "y": 115
+            },
+            {
+              "x": 274,
+              "y": 132
+            },
+            {
+              "x": 299,
+              "y": 127
+            },
+            {
+              "x": 294,
+              "y": 113
+            }
+          ]
+        },
+        {
+          "id": "shape_1774718846186",
+          "type": "polygon",
+          "mode": "sub",
+          "points": [
+            {
+              "x": 217,
+              "y": 112
+            },
+            {
+              "x": 237,
+              "y": 135
+            },
+            {
+              "x": 219,
+              "y": 141
+            }
+          ]
+        },
+        {
+          "id": "shape_1774718850833",
+          "type": "polygon",
+          "mode": "sub",
+          "points": [
+            {
+              "x": 219,
+              "y": 115
+            },
+            {
+              "x": 234,
+              "y": 116
+            },
+            {
+              "x": 238,
+              "y": 138
+            }
+          ]
+        },
+        {
+          "id": "shape_1774968452567",
+          "type": "rect",
+          "mode": "add",
+          "x": 131,
+          "y": 90,
+          "w": 100,
+          "h": 17
+        },
+        {
+          "id": "shape_1774970051355",
+          "type": "rect",
+          "mode": "sub",
+          "x": 106,
+          "y": 52,
+          "w": 206,
+          "h": 49
+        },
+        {
+          "id": "shape_1774970062504",
+          "type": "polygon",
+          "mode": "add",
+          "points": [
+            {
+              "x": 239,
+              "y": 103
+            },
+            {
+              "x": 268,
+              "y": 78
+            },
+            {
+              "x": 314,
+              "y": 76
+            },
+            {
+              "x": 315,
+              "y": 102
+            }
+          ]
+        },
+        {
+          "id": "shape_1774970122240",
+          "type": "rect",
+          "mode": "add",
+          "x": 162,
+          "y": 106,
+          "w": 65,
+          "h": 10
+        },
+        {
+          "id": "shape_1774970142745",
+          "type": "rect",
+          "mode": "add",
+          "x": 140,
+          "y": 104,
+          "w": 27,
+          "h": 7
+        },
+        {
+          "id": "shape_1774970177496",
+          "type": "rect",
+          "mode": "sub",
+          "x": 128,
+          "y": 86,
+          "w": 21,
+          "h": 32
+        },
+        {
+          "id": "shape_1775077706338",
+          "type": "polygon",
+          "mode": "add",
+          "points": [
+            {
+              "x": 201,
+              "y": 107
+            },
+            {
+              "x": 270,
+              "y": 77
+            },
+            {
+              "x": 257,
+              "y": 107
+            }
+          ]
+        },
+        {
+          "id": "shape_1775077713285",
+          "type": "polygon",
+          "mode": "add",
+          "points": [
+            {
+              "x": 268,
+              "y": 114
+            },
+            {
+              "x": 298,
+              "y": 107
+            },
+            {
+              "x": 311,
+              "y": 131
+            },
+            {
+              "x": 274,
+              "y": 139
+            }
+          ]
+        },
+        {
+          "id": "shape_1775077721905",
+          "type": "rect",
+          "mode": "sub",
+          "x": 267,
+          "y": 107,
+          "w": 49,
+          "h": 37
+        },
+        {
+          "id": "shape_1775077865619",
+          "type": "polygon",
+          "mode": "add",
+          "points": [
+            {
+              "x": 153,
+              "y": 102
+            },
+            {
+              "x": 260,
+              "y": 80
+            },
+            {
+              "x": 246,
+              "y": 111
+            }
+          ]
+        },
+        {
+          "id": "shape_1775140791143",
+          "type": "rect",
+          "mode": "add",
+          "x": 69,
+          "y": 96,
+          "w": 69,
+          "h": 26
+        },
+        {
+          "id": "shape_1775140795634",
+          "type": "rect",
+          "mode": "add",
+          "x": 70,
+          "y": 94,
+          "w": 57,
+          "h": 26
+        },
+        {
+          "id": "shape_1775141158745",
+          "type": "polygon",
+          "mode": "add",
+          "points": [
+            {
+              "x": 53,
+              "y": 84
+            },
+            {
+              "x": 66,
+              "y": 138
+            },
+            {
+              "x": 142,
+              "y": 130
+            },
+            {
+              "x": 129,
+              "y": 124
+            }
+          ]
+        },
+        {
+          "id": "shape_1775141163297",
+          "type": "rect",
+          "mode": "sub",
+          "x": 36,
+          "y": 64,
+          "w": 103,
+          "h": 80
+        },
+        {
+          "id": "shape_1775174489614",
+          "type": "rect",
+          "mode": "add",
+          "x": 293,
+          "y": 81,
+          "w": 24,
+          "h": 24
+        },
+        {
+          "id": "shape_1775174543665",
+          "type": "rect",
+          "mode": "add",
+          "x": 275,
+          "y": 66,
+          "w": 42,
+          "h": 20
+        },
+        {
+          "id": "shape_1775177233762",
+          "type": "rect",
+          "mode": "add",
+          "x": 143,
+          "y": 94,
+          "w": 42,
+          "h": 25
+        },
+        {
+          "id": "shape_1775229054755",
+          "type": "rect",
+          "mode": "add",
+          "x": 240,
+          "y": 136,
+          "w": 26,
+          "h": 8
+        }
+      ]
+    }
+  ],
+  "activeWalkmapId": "wm_1774718575219",
+  "objects": [
+    {
+      "id": "inst_1774968537263",
+      "objectId": "obj_1774968356719",
+      "objectName": "atalaya2",
+      "x": 160,
+      "y": 144,
+      "zOrder": 0,
+      "stateOverride": null,
+      "pickable": false,
+      "invGfxId": "",
+      "states": [
+        {
+          "id": "state_1775061642621",
+          "gfxId": ""
+        }
+      ],
+      "overLight": true
+    },
+    {
+      "id": "inst_1775000397676",
+      "objectId": "obj_1775000117001",
+      "objectName": "fuego_atalaya",
+      "x": 132,
+      "y": 92,
+      "zOrder": 0,
+      "stateOverride": null,
+      "pickable": false,
+      "invGfxId": "",
+      "states": [],
+      "overLight": false
+    }
+  ],
+  "characters": [
+    {
+      "id": "cinst_1775061436922",
+      "charId": "char_1775060638207",
+      "charName": "lookout",
+      "x": 103,
+      "y": 110,
+      "facingDir": "left",
+      "currentAnimation": "idle_side_left",
+      "patrolOverride": []
+    }
+  ],
+  "exits": [
+    {
+      "id": "exit_1774718878702",
+      "name": "nueva_salida",
+      "triggerZone": {
+        "x": 239,
+        "y": 128,
+        "w": 31,
+        "h": 17
+      },
+      "targetRoom": "room_1775300559756",
+      "targetEntry": "entry_1775300676087",
+      "condition": null,
+      "transitionAnimation": null
+    }
+  ],
+  "entries": [
+    {
+      "id": "entry_default",
+      "x": 289,
+      "y": 85,
+      "name": "arco"
+    },
+    {
+      "id": "entry_1775300914419",
+      "name": "nescalera",
+      "x": 249,
+      "y": 117
+    }
+  ],
+  "effects": [],
+  "audio": {
+    "midi": "island.mid"
+  },
+  "created": "2026-03-28",
+  "modified": "2026-04-11"
+}

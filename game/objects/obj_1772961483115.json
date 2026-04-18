@@ -1,0 +1,43 @@
+{
+  "id": "obj_1772961483115",
+  "name": "pollo",
+  "type": "pickable",
+  "detectable": true,
+  "states": [
+    {
+      "id": "state_default",
+      "name": "default",
+      "spriteFile": "POLLO.PCX",
+      "frameCount": 1,
+      "inventorySprite": "POLLO.PCX"
+    }
+  ],
+  "activeStateId": "state_default",
+  "verbActions": [
+    {
+      "id": "va_1773075753258",
+      "verb": "verbset_1772958154228_coger",
+      "condition": "",
+      "script": ""
+    }
+  ],
+  "combinations": [
+    {
+      "id": "comb_1774853583410",
+      "withId": "obj_1774707204254",
+      "scriptId": "scr_1774652868595",
+      "requireBothInv": true
+    }
+  ],
+  "flags": [],
+  "coverageZone": null,
+  "created": "2026-03-08",
+  "modified": "2026-03-30",
+  "invVerbResponses": [
+    {
+      "verbId": "verbset_1772958154228_usar",
+      "mode": "script",
+      "scriptId": "scr_1774652868595"
+    }
+  ]
+}

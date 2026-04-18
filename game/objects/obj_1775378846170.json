@@ -1,0 +1,46 @@
+{
+  "id": "obj_1775378846170",
+  "name": "scumm_bar_door",
+  "type": "scenery",
+  "detectable": true,
+  "states": [
+    {
+      "id": "state_default",
+      "name": "closed",
+      "spriteFile": "SBDOOR1.PCX",
+      "frameCount": 1,
+      "bgLayer": true
+    },
+    {
+      "id": "state_1775378858107",
+      "name": "open",
+      "spriteFile": "SBDOOR2.PCX",
+      "inventorySprite": null,
+      "animated": false,
+      "frameCount": 1,
+      "fps": 8,
+      "frameWidth": 0,
+      "bgLayer": true
+    }
+  ],
+  "activeStateId": "state_default",
+  "verbActions": [],
+  "verbResponses": [
+    {
+      "verbId": "verbset_1772958154228_abrir",
+      "mode": "script",
+      "scriptId": "scr_1775378984690"
+    },
+    {
+      "verbId": "verbset_1772958154228_cerrar",
+      "mode": "script",
+      "scriptId": "scr_1775379072032"
+    }
+  ],
+  "invVerbResponses": [],
+  "combinations": [],
+  "flags": [],
+  "coverageZone": null,
+  "created": "2026-04-05",
+  "modified": "2026-04-12"
+}

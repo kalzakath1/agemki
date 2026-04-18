@@ -1,0 +1,108 @@
+{
+  "id": "scr_1775140176507",
+  "name": "intro",
+  "trigger": {
+    "type": "room_enter",
+    "roomId": "room_1775138136660"
+  },
+  "instructions": [
+    {
+      "id": "i_1775156019783",
+      "type": "MOVE_OBJECT",
+      "objectId": "obj_1775138600519",
+      "x": 40,
+      "y": 81
+    },
+    {
+      "id": "i_1775156039774",
+      "type": "SET_OBJECT_STATE",
+      "objectId": "obj_1775138600519",
+      "stateId": "",
+      "animLoop": false,
+      "waitAnim": true
+    },
+    {
+      "id": "i_1775156048299",
+      "type": "MOVE_OBJECT",
+      "objectId": "obj_1775138600519",
+      "x": 84,
+      "y": 20
+    },
+    {
+      "id": "i_1775156056161",
+      "type": "SET_OBJECT_STATE",
+      "objectId": "obj_1775138600519",
+      "stateId": "",
+      "animLoop": false,
+      "waitAnim": true
+    },
+    {
+      "id": "i_1775169931190",
+      "type": "MOVE_OBJECT",
+      "objectId": "obj_1775138600519",
+      "x": 118,
+      "y": 92
+    },
+    {
+      "id": "i_1775169940218",
+      "type": "SET_OBJECT_STATE",
+      "objectId": "obj_1775138600519",
+      "stateId": "",
+      "animLoop": false,
+      "waitAnim": true
+    },
+    {
+      "id": "i_1775170179724",
+      "type": "MOVE_OBJECT",
+      "objectId": "obj_1775138600519",
+      "x": 183,
+      "y": 80
+    },
+    {
+      "id": "i_1775170186671",
+      "type": "SET_OBJECT_STATE",
+      "objectId": "obj_1775138600519",
+      "stateId": "",
+      "animLoop": false,
+      "waitAnim": true
+    },
+    {
+      "id": "i_1775170256663",
+      "type": "MOVE_OBJECT",
+      "objectId": "obj_1775138600519",
+      "x": 266,
+      "y": 24
+    },
+    {
+      "id": "i_1775170263487",
+      "type": "SET_OBJECT_STATE",
+      "objectId": "obj_1775138600519",
+      "stateId": "",
+      "animLoop": false,
+      "waitAnim": true
+    },
+    {
+      "id": "i_1775170323406",
+      "type": "MOVE_OBJECT",
+      "objectId": "obj_1775138600519",
+      "x": 253,
+      "y": 153
+    },
+    {
+      "id": "i_1775170330777",
+      "type": "SET_OBJECT_STATE",
+      "objectId": "obj_1775138600519",
+      "stateId": "",
+      "animLoop": false,
+      "waitAnim": true
+    },
+    {
+      "id": "i_1775170515242",
+      "type": "SET_FLAG",
+      "flag": "salir_intro",
+      "value": "true"
+    }
+  ],
+  "created": "2026-04-02",
+  "modified": "2026-04-02"
+}
