@@ -293,14 +293,27 @@
 }
 
 /* ── Action rows ─────────────────────────────────────────────────────────── */
-.dlg-actions-list { display: flex; flex-direction: column; gap: 6px; }
+.dlg-actions-list { display: flex; flex-direction: column; gap: 8px; }
+.dlg-action-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px 8px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
 .dlg-action-row {
   display: flex;
   gap: 4px;
   align-items: center;
 }
-.dlg-action-row select { font-size: 11px; flex-shrink: 0; }
-.dlg-action-row input  { font-size: 11px; flex: 1; min-width: 0; }
+.dlg-action-row select { font-size: 11px; flex: 1; }
+.dlg-action-param {
+  font-size: 11px;
+  width: 100%;
+  box-sizing: border-box;
+}
 
 /* ── Branch hint ─────────────────────────────────────────────────────────── */
 .dlg-branch-hint {

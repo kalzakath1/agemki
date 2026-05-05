@@ -2696,6 +2696,16 @@ async function generateMainC(gameDir, audioDriver) {
         e(`        ${pfx}_IDLE_UP_PCX,    ${pfx}_IDLE_UP_FRAMES,    ${pfx}_IDLE_UP_FPS,    ${pfx}_IDLE_UP_FW,`)
         e(`        ${pfx}_IDLE_DOWN_PCX,  ${pfx}_IDLE_DOWN_FRAMES,  ${pfx}_IDLE_DOWN_FPS,  ${pfx}_IDLE_DOWN_FW,`)
         e(`        ${pfx}_SPEED, ${pfx}_PROTAGONIST);`)
+        if (ch.animRoles?.talk)
+          e(`    engine_set_char_talk_anim("${cStr(id)}", ${pfx}_TALK_PCX, ${pfx}_TALK_FRAMES, ${pfx}_TALK_FPS, ${pfx}_TALK_FW);`)
+        if (ch.animRoles?.talk_left)
+          e(`    engine_set_char_talk_anim_left("${cStr(id)}", ${pfx}_TALK_LEFT_PCX, ${pfx}_TALK_LEFT_FRAMES, ${pfx}_TALK_LEFT_FPS, ${pfx}_TALK_LEFT_FW);`)
+        if (ch.animRoles?.talk_up)
+          e(`    engine_set_char_talk_anim_up("${cStr(id)}", ${pfx}_TALK_UP_PCX, ${pfx}_TALK_UP_FRAMES, ${pfx}_TALK_UP_FPS, ${pfx}_TALK_UP_FW);`)
+        if (ch.animRoles?.talk_down)
+          e(`    engine_set_char_talk_anim_down("${cStr(id)}", ${pfx}_TALK_DOWN_PCX, ${pfx}_TALK_DOWN_FRAMES, ${pfx}_TALK_DOWN_FPS, ${pfx}_TALK_DOWN_FW);`)
+        if (ch.animRoles?.give)
+          e(`    engine_set_char_give_anim("${cStr(id)}", ${pfx}_GIVE_PCX, ${pfx}_GIVE_FRAMES, ${pfx}_GIVE_FPS, ${pfx}_GIVE_FW);`)
         const stColor = typeof ch.subtitleColor === 'number' ? ch.subtitleColor : 15
         if (stColor !== 15) e(`    engine_set_char_subtitle_color("${cStr(id)}", ${stColor});`)
         e(`}`)
@@ -3070,8 +3080,22 @@ async function generateMainC(gameDir, audioDriver) {
       if (!connMap[c.from]) connMap[c.from] = []
       connMap[c.from].push(c)
     }
+    /* Nodos action inlinados: compilar su contenido en el predecesor, no emitirlos */
+    const actionNodeMap = {}
+    for (const n of nodes) {
+      if (n.type !== 'action') continue
+      const ac = connMap[n.id] || []
+      const aCont = ac.find(c => c.choiceIndex === null) || ac[0]
+      const aStr = (n.actions || []).map(a => `${a.type}:${a.flag || a.script || a.itemId || ''}`).join('|')
+      actionNodeMap[n.id] = { condStr: aStr ? `@${aStr}` : '', contNext: aCont?.to || '' }
+    }
+    const resolveLinear = (toId) => {
+      const en = actionNodeMap[toId]
+      return en ? { nextId: en.contNext, condStr: en.condStr } : { nextId: toId, condStr: '' }
+    }
     e(`    static const DialogueNode nodes_${cId(id)}[] = {`)
     for (const node of nodes) {
+      if (node.type === 'action') continue
       const nodeConns = (connMap[node.id] || []).sort((a,b) => (a.choiceIndex??0) - (b.choiceIndex??0))
       /* Construir lines[] */
       const lines = []
@@ -3115,8 +3139,8 @@ async function generateMainC(gameDir, audioDriver) {
       ).join(', ')
       const linesInit = linesStr || '{ "", "", "", "", "" }'
       const numLines = lines.length
-      /* Construir options */
-      let opts, numOpts
+      /* Construir options + node_type (0=normal 1=branch 2=action) */
+      let opts, numOpts, nodeType = 0
       if (node.type === 'choice' && node.choices?.length) {
         const choiceOpts = node.choices.map((ch, ci) => {
           const conn = nodeConns.find(c => c.choiceIndex === ci)
@@ -3139,15 +3163,34 @@ async function generateMainC(gameDir, audioDriver) {
         })
         opts = choiceOpts.join(', ')
         numOpts = node.choices.length
+      } else if (node.type === 'branch') {
+        /* BRANCH: option[0]=true, option[1]=false */
+        nodeType = 1
+        const trueConn  = nodeConns.find(c => c.choiceIndex === 0)
+        const falseConn = nodeConns.find(c => c.choiceIndex === 1)
+        const trueNext  = trueConn?.to  || ''
+        const falseNext = falseConn?.to || ''
+        const flag = node.flag || ''
+        const op   = node.operator || 'is_true'
+        let condJson = ''
+        if (flag) {
+          if (op === 'is_true')   condJson = `{"name":"${flag}","value":"true"}`
+          else if (op === 'is_false')  condJson = `{"name":"${flag}","value":"false"}`
+          else if (op === 'equals')    condJson = `{"name":"${flag}","value":"${node.compareValue||'0'}"}`
+          else if (op === 'greater')   condJson = `{"name":"${flag}","op":"greater","value":"${node.compareValue||'0'}"}`
+          else if (op === 'less')      condJson = `{"name":"${flag}","op":"less","value":"${node.compareValue||'0'}"}`
+        }
+        opts = `{ "", "${cStr(condJson)}", "${cStr(trueNext)}", "", "", "", 0 }, { "", "", "${cStr(falseNext)}", "", "", "", 0 }`
+        numOpts = 2
       } else if (nodeConns.length > 0) {
-        const nextId = nodeConns[0].to
-        opts = `{ "", "", "${cStr(nextId)}", "", "", "", 0 }`
+        const { nextId, condStr: linCond } = resolveLinear(nodeConns[0].to)
+        opts = `{ "", "${cStr(linCond)}", "${cStr(nextId)}", "", "", "", 0 }`
         numOpts = 1
       } else {
         opts = '{0}'
         numOpts = 0
       }
-      e(`        { "${cStr(node.id)}", { ${linesInit} }, ${numLines}, { ${opts} }, ${numOpts} },`)
+      e(`        { "${cStr(node.id)}", { ${linesInit} }, ${numLines}, { ${opts} }, ${numOpts}, ${nodeType} },`)
     }
     e(`    };`)
     const _startNode = nodes.find(n => n.type === 'start') || nodes[0]
@@ -3155,7 +3198,8 @@ async function generateMainC(gameDir, audioDriver) {
       const dc = dlg.colors
       e(`    engine_set_dialogue_colors(${dc.bg|0}, ${dc.brd|0}, ${dc.txt|0}, ${dc.sel|0});`)
     }
-    e(`    engine_run_dialogue(nodes_${cId(id)}, ${nodes.length}, "${cStr(_startNode?.id || '')}");`)
+    const _dlgN = nodes.filter(n => n.type !== 'action').length
+    e(`    engine_run_dialogue(nodes_${cId(id)}, ${_dlgN}, "${cStr(_startNode?.id || '')}");`)
     e('}')
     e('')
   }

@@ -433,6 +433,7 @@ function CharInstancePanel({ room, gameDir, palette, selectedCharInstId, onSelec
 
 function ExitPanel({ room, gameDir, selectedExitId, onSelect, onAdd, onUpdate, onDelete }) {
   const [rooms, setRooms] = useState(null)
+  const { langs, setKey } = useLocaleStore()
   useEffect(() => {
     if (!gameDir) return
     window.api.listRooms(gameDir).then(r => setRooms(r.ok ? r.rooms : []))
@@ -463,7 +464,11 @@ function ExitPanel({ room, gameDir, selectedExitId, onSelect, onAdd, onUpdate, o
                 <div className="char-inst-props__row">
                   <label style={{ flex: 1 }}>Nombre ID
                     <input type="text" value={ex.name}
-                      onChange={e => onUpdate(ex.id, { name: e.target.value.replace(/\s+/g,'_').toLowerCase() })} />
+                      onChange={e => {
+                        const newName = e.target.value.replace(/\s+/g,'_').toLowerCase()
+                        onUpdate(ex.id, { name: newName })
+                        langs.forEach(lang => setKey(lang, `exit.${ex.id}.name`, newName))
+                      }} />
                   </label>
                 </div>
 

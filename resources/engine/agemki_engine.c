@@ -1457,12 +1457,16 @@ int engine_eval_cond(const char* cond_json) {
         return 0;
     }
 
-    /* flag (por defecto): {"name":"flag","value":"true"} */
+    /* flag (por defecto): {"name":"flag","value":"true"[,"op":"greater|less"]} */
     _json_str(cond_json, "name",  name, 32);
     _json_str(cond_json, "value", val,  32);
     if (!name[0]) return 1;
-    { int fv = engine_get_flag(name);
-      int tv = (_str_eq(val,"true")) ? 1 : (_str_eq(val,"false")) ? 0 : atoi(val);
+    { char op_str[8]; int fv; int tv;
+      op_str[0] = '\0'; _json_str(cond_json, "op", op_str, 8);
+      fv = engine_get_flag(name);
+      tv = (_str_eq(val,"true")) ? 1 : (_str_eq(val,"false")) ? 0 : atoi(val);
+      if (_str_eq(op_str, "greater")) return fv > tv;
+      if (_str_eq(op_str, "less"))    return fv < tv;
       return fv == tv;
     }
 }
@@ -5803,22 +5807,87 @@ static void _dlg_panel_draw(void) {
                          VERB_FONT, g_dlg_col_txt, 0, "v");
 }
 
+/* Ejecuta una acción de nodo ACTION: set_flag, clear_flag, give_item, remove_item */
+static void _exec_dlg_action(const char* act_type, const char* param) {
+    if (!act_type || !act_type[0]) return;
+    if (_str_eq(act_type, "set_flag"))     { if (param && param[0]) engine_set_flag(param, "1"); }
+    else if (_str_eq(act_type, "clear_flag")) { if (param && param[0]) engine_set_flag(param, "0"); }
+    else if (_str_eq(act_type, "give_item"))  { if (param && param[0]) engine_give_object(param, ""); }
+    else if (_str_eq(act_type, "remove_item")){ if (param && param[0]) engine_remove_object(param, ""); }
+}
+
 void engine_run_dialogue(const DialogueNode* nodes, int n, const char* start_id) {
     const DialogueNode* cur = NULL;
     int i;
+    int ui_was_hidden;
     for (i = 0; i < n; i++)
         if (_str_eq(nodes[i].id, start_id)) { cur = &nodes[i]; break; }
 
     DBG("run_dialogue: start=\'%s\' found=%d n=%d\n", start_id, cur!=NULL, n);
     do { _mouse_poll(); } while (g_mouse.buttons);
     g_script_running = 1;
+    ui_was_hidden = g_ui_hidden;
     engine_hide_ui();
 
     while (cur && g_running) {
         int li;
+        static s16 s_oy_adj[MAX_DIALOGUE_LINES];
+        static int s_nl_adj[MAX_DIALOGUE_LINES];
         /* Aplicar animacion y direccion + mostrar globos para todas las lineas */
         _overlay_clear_all();
         g_overlay_click_seen = 0;
+
+        /* Pre-paso: calcular Y ajustado para evitar solapamiento en lineas simultaneas.
+         * Solo actua cuando num_lines > 1; O(n log n) con n<=4, ejecutado una vez por nodo. */
+        { int _i; for (_i = 0; _i < MAX_DIALOGUE_LINES; _i++) { s_oy_adj[_i] = -1; s_nl_adj[_i] = 0; } }
+        if (cur->num_lines > 1) {
+            static char _wb_pre[MAX_TEXT_LEN+1];
+            int _li, _nv = 0, _sorted[MAX_DIALOGUE_LINES];
+            for (_li = 0; _li < cur->num_lines; _li++) {
+                const DialogueLine* _ln = &cur->lines[_li];
+                const char* _t; s16 _oy = 10;
+                if (_ln->char_filter && _ln->char_filter[0]) {
+                    const char* _pid2 = (g_char_count > 0) ? g_chars[g_protagonist].id : "";
+                    if (!_str_eq(_ln->char_filter, _pid2)) continue;
+                }
+                _t = engine_text(_ln->text_key);
+                if (!_t || !_t[0] || _t == _ln->text_key) continue;
+                if (_ln->speaker_id[0]) {
+                    int _ci;
+                    for (_ci = 0; _ci < g_char_count; _ci++) {
+                        if (_str_eq(g_chars[_ci].id, _ln->speaker_id)) {
+                            s16 _ch = (g_chars[_ci].dec_h > 0) ? (s16)g_chars[_ci].dec_h : 40;
+                            u8  _pct = ((u16)g_chars[_ci].y < 200u) ? g_scale_lut[(u8)g_chars[_ci].y] : 100;
+                            if (_pct > 0 && _pct < 100) _ch = (s16)((u32)_ch * _pct / 100);
+                            { s16 _ct = (s16)(g_chars[_ci].y - _ch);
+                              if (_ct < 0) _ct = 0; _oy = (s16)(_ct / 2); }
+                            if (_oy < 4) _oy = 4;
+                            break;
+                        }
+                    }
+                }
+                { const char* _p; int _nl = 1;
+                  _word_wrap(_t, _wb_pre, MAX_TEXT_LEN+1, 38);
+                  for (_p = _wb_pre; *_p; _p++) if (*_p == '\n') _nl++;
+                  s_oy_adj[_li] = _oy; s_nl_adj[_li] = _nl;
+                  _sorted[_nv++] = _li;
+                }
+            }
+            /* Insercion sort por oy + ajuste de solapamiento (max 4 elementos, trivial en 486) */
+            { int _i, _j; s16 _lh = (s16)(VERB_FONT_H + 2);
+              for (_i = 1; _i < _nv; _i++) {
+                  int _k = _sorted[_i]; _j = _i - 1;
+                  while (_j >= 0 && s_oy_adj[_sorted[_j]] > s_oy_adj[_k])
+                      { _sorted[_j+1] = _sorted[_j]; _j--; }
+                  _sorted[_j+1] = _k;
+              }
+              for (_i = 1; _i < _nv; _i++) {
+                  int _pr = _sorted[_i-1], _cr = _sorted[_i];
+                  s16 _min = (s16)(s_oy_adj[_pr] + (s_nl_adj[_pr] + 1) * _lh);
+                  if (s_oy_adj[_cr] < _min) s_oy_adj[_cr] = _min;
+              }
+            }
+        }
 
         for (li = 0; li < cur->num_lines; li++) {
             const DialogueLine* ln = &cur->lines[li];
@@ -5888,6 +5957,9 @@ void engine_run_dialogue(const DialogueNode* nodes, int n, const char* start_id)
                     }
                 }
             }
+            /* En nodo multi-speaker usar el Y ajustado para evitar solapamiento */
+            if (cur->num_lines > 1 && li < MAX_DIALOGUE_LINES && s_oy_adj[li] >= 0)
+                oy = s_oy_adj[li];
             /* Renderizar texto con soporte de saltos de linea \n */
             { const char* _p = txt;
               s16 _ly = oy;
@@ -5914,8 +5986,22 @@ void engine_run_dialogue(const DialogueNode* nodes, int n, const char* start_id)
             }
         }
 
+        /* Nodo BRANCH: evaluar condición, seguir camino true[0] o false[1] */
+        if (cur->node_type == 1) {
+            int _br_ok = (cur->num_options >= 1 && cur->options[0].condition[0])
+                ? engine_eval_cond(cur->options[0].condition) : 1;
+            { int _bi = _br_ok ? 0 : 1;
+              const char* _bn = (_bi < cur->num_options) ? cur->options[_bi].next_node_id : "";
+              cur = NULL;
+              if (_bn && _bn[0])
+                  for (i = 0; i < n; i++)
+                      if (_str_eq(nodes[i].id, _bn)) { cur = &nodes[i]; break; }
+            }
+            continue;
+        }
+
         if (cur->num_lines == 0) {
-            /* Nodo sin lineas (action/branch) — procesar y continuar */
+            /* Nodo sin lineas normal — sin acción */
         } else {
             /* Esperar a que el jugador avance: click, ENTER/SPACE o timeout */
             u32 t0 = g_ticks_ms;
@@ -5956,9 +6042,24 @@ void engine_run_dialogue(const DialogueNode* nodes, int n, const char* start_id)
 
         if (cur->num_options == 0) break;
 
-        /* Nodo lineal (1 opcion sin texto): avanzar automaticamente */
+        /* Nodo lineal (1 opcion sin texto): avanzar automaticamente.
+         * Acciones opcionales en condition como "@tipo:param|tipo:param" (nodos action). */
         if (cur->num_options == 1 && (!cur->options[0].text_key || !cur->options[0].text_key[0])) {
             const char* next = cur->options[0].next_node_id;
+            if (cur->options[0].condition && cur->options[0].condition[0] == '@') {
+                const char* _p = cur->options[0].condition + 1;
+                while (*_p) {
+                    char _at[32]; char _ap[64];
+                    int _ti = 0, _pi = 0;
+                    while (*_p && *_p != ':' && _ti < 31) { _at[_ti++] = *_p++; }
+                    _at[_ti] = '\0';
+                    if (*_p == ':') _p++;
+                    while (*_p && *_p != '|' && _pi < 63) { _ap[_pi++] = *_p++; }
+                    _ap[_pi] = '\0';
+                    if (*_p == '|') _p++;
+                    _exec_dlg_action(_at, _ap);
+                }
+            }
             if (!next || !next[0]) break;
             cur = NULL;
             for (i = 0; i < n; i++)
@@ -6072,7 +6173,9 @@ void engine_run_dialogue(const DialogueNode* nodes, int n, const char* start_id)
     }
     _overlay_clear_all();
     engine_clear_text();
-    engine_show_ui();
+    /* Restaurar estado del UI: si estaba oculto antes del dialogo (secuencia),
+     * mantenerlo oculto en lugar de mostrarlo siempre. */
+    if (ui_was_hidden) engine_hide_ui(); else engine_show_ui();
     /* Consumir botones pendientes: evita que el click que disparo el dialogo
      * se procese como accion de movimiento al volver al game loop */
     do { _mouse_poll(); } while (g_mouse.buttons);
