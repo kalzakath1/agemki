@@ -604,7 +604,7 @@ ipcMain.handle('verbset:create', async (_event, { gameDir, name }) => {
     const verbs = [
       { id: `${vsId}_mirar`,   icon: '👁',  isMovement: false, isDefault: false, approachObject: true,  order: 0 },
       { id: `${vsId}_coger`,   icon: '🖐',  isMovement: false, isDefault: false, approachObject: true,  isPickup: true, order: 1 },
-      { id: `${vsId}_usar`,    icon: '⚙️',  isMovement: false, isDefault: true,  approachObject: true,  order: 2 },
+      { id: `${vsId}_usar`,    icon: '⚙️',  isMovement: false, isDefault: true,  approachObject: true,  isUsarCon: true, order: 2 },
       { id: `${vsId}_abrir`,   icon: '🚪',  isMovement: false, isDefault: false, approachObject: true,  order: 3 },
       { id: `${vsId}_cerrar`,  icon: '🔒',  isMovement: false, isDefault: false, approachObject: true,  order: 4 },
       { id: `${vsId}_empujar`, icon: '👉',  isMovement: false, isDefault: false, approachObject: true,  order: 5 },
@@ -3057,6 +3057,9 @@ async function generateMainC(gameDir, audioDriver) {
 
   // ── Diálogos ────────────────────────────────────────────────────────────────
   e('/* ── Diálogos ─────────────────────────────────────────────────── */')
+  // Leer locale primario para detectar si hay texto "2ª vez" definido
+  let _dlgLocale = {}
+  try { _dlgLocale = JSON.parse(require('fs').readFileSync(require('path').join(gameDir, 'locales', 'es.json'), 'utf8')) } catch {}
   for (const id of dialogueIds) {
     const dlg = dialogues[id]
     e(`static void dlg_${cId(id)}(void) {`)
@@ -3121,15 +3124,24 @@ async function generateMainC(gameDir, audioDriver) {
           const condStr = ch.condition && typeof ch.condition === 'object'
             ? JSON.stringify(ch.condition)
             : (ch.condition || '')
-          const onceTextKey = ch.onceTextKey || ''
           const isOnce      = ch.once ? 1 : 0
-          return `{ "${cStr(ch.textKey||ch.text||'')}", "${cStr(condStr)}", "${cStr(nextId)}", "${cStr(ch.charFilter||'')}", "${cStr(onceTextKey)}", ${isOnce} }`
+          // Swap: 1ª vez = ch.textKey (principal), 2ª vez = ch.onceTextKey (opcional)
+          // En el motor: text_key = siempre/2ª vez, text_key_once = solo 1ª vez
+          const raw1 = ch.textKey || ch.text || ''
+          const raw2Key = ch.onceTextKey || ''
+          const has2ndText = !!(raw2Key && _dlgLocale[raw2Key])
+          const has2ndDest = !!(ch.onceNextId)
+          const cTextKey     = has2ndText ? raw2Key    : raw1
+          const cTextKeyOnce = has2ndText ? raw1       : ''
+          const cNextId      = has2ndDest ? ch.onceNextId : nextId
+          const cNextIdOnce  = has2ndDest ? nextId        : ''
+          return `{ "${cStr(cTextKey)}", "${cStr(condStr)}", "${cStr(cNextId)}", "${cStr(ch.charFilter||'')}", "${cStr(cTextKeyOnce)}", "${cStr(cNextIdOnce)}", ${isOnce} }`
         })
         opts = choiceOpts.join(', ')
         numOpts = node.choices.length
       } else if (nodeConns.length > 0) {
         const nextId = nodeConns[0].to
-        opts = `{ "", "", "${cStr(nextId)}", "", "", 0 }`
+        opts = `{ "", "", "${cStr(nextId)}", "", "", "", 0 }`
         numOpts = 1
       } else {
         opts = '{0}'
@@ -3824,6 +3836,8 @@ async function generateMainC(gameDir, audioDriver) {
       e(`    engine_on_usar_con("${cStr(tr.objectId)}", "${cStr(tr.targetId || '')}", scr_${cId(id)}, ${tr.requireBothInv ? 1 : 0});`)
     } else if (tr.type === 'object_click') {
       e(`    engine_on_object_click("${cStr(tr.objectId)}", scr_${cId(id)});`)
+    } else if (tr.type === 'verb_char') {
+      e(`    engine_on_verb_object("${cStr(tr.verbId)}", "${cStr(tr.charId)}", scr_${cId(id)});`)
     } else if (tr.type === 'game_start') {
       e(`    engine_on_game_start(scr_${cId(id)});`)
     } else if (tr.type === 'sequence_end') {

@@ -81,8 +81,9 @@ typedef struct {
     const char* condition;     /* condición como string serializado, "" = siempre */
     const char* next_node_id;  /* id del nodo siguiente, "" = fin */
     const char* char_filter;   /* "" = visible a todos; id de personaje = solo para ese protagonista */
-    const char* text_key_once; /* texto alternativo que se muestra SOLO la primera vez; "" = sin alternativo */
-    u8          once;          /* 1 = ocultar esta opción tras elegirla por primera vez */
+    const char* text_key_once;      /* texto alternativo que se muestra SOLO la primera vez; "" = sin alternativo */
+    const char* next_node_id_once;  /* nodo destino SOLO la primera vez; "" = usar next_node_id */
+    u8          once;               /* 1 = ocultar esta opción tras elegirla por primera vez */
 } DialogueOption;
 
 #define MAX_DIALOGUE_LINES 4   /* líneas simultáneas por nodo */

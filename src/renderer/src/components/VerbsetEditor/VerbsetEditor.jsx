@@ -121,6 +121,12 @@ function VerbRow({ verb, index, total, langs, locales, palette, onUpdate, onDele
             onChange={e => onUpdate({ isGive: e.target.checked })} />
           <span>🤝 Dar</span>
         </label>
+        <label className={`flag-toggle ${verb.isUsarCon ? 'active' : ''}`}
+          title="Modo 'usar X con': al clicar objeto inventario muestra 'Usar X con' y espera un segundo objeto. Solo para el verbo Usar.">
+          <input type="checkbox" checked={!!verb.isUsarCon}
+            onChange={e => onUpdate({ isUsarCon: e.target.checked })} />
+          <span>🔗 UsarCon</span>
+        </label>
       </div>
 
       {/* Colores de texto */}

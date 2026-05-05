@@ -528,7 +528,9 @@ function serializeVerbset(vs) {
   size += 1
   // Por verbo: str8 id, str8 label, uint8 isMovement, uint8 approachObj, uint8 isPickup,
   //            uint8 screenX, uint8 screenY, uint8 normalColor, uint8 hoverColor
+  // Al final del bloque: uint16 usarConMask (bitmask, bit i = verbo i tiene isUsarCon)
   for (const v of verbs) size += sizeStr8(v.id) + sizeStr8(v.label || v.id) + 7
+  size += 2
 
   const buf = Buffer.alloc(size)
   let off = 0
@@ -546,6 +548,13 @@ function serializeVerbset(vs) {
     buf.writeUInt8(v.normalColor !== undefined ? v.normalColor : 15, off); off += 1
     buf.writeUInt8(v.hoverColor  !== undefined ? v.hoverColor  : 15, off); off += 1
   }
+  // Bitmask isUsarCon: bit i = el verbo i-ésimo (orden del array) tiene isUsarCon
+  let usarConMask = 0
+  for (let i = 0; i < verbs.length && i < 16; i++) {
+    if (verbs[i].isUsarCon) usarConMask |= (1 << i)
+  }
+  buf.writeUInt8(usarConMask & 0xFF, off); off += 1
+  buf.writeUInt8((usarConMask >> 8) & 0xFF, off); off += 1
   return buf.slice(0, off)
 }
 

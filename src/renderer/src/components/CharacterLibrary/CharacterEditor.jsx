@@ -4,6 +4,7 @@ import { useDialogueStore } from '../../store/dialogueStore'
 import { useCharStore }   from '../../store/charStore'
 import { useLocaleStore } from '../../store/localeStore'
 import { pcxFileToDataURL, getPcxDimensions } from '../../utils/pcxConverter'
+import PalettePicker from '../shared/PalettePicker'
 
 // ── PCX thumbnail helper ──────────────────────────────────────────────────────
 // pcxFileToFirstFrameDataURL — renders only the first frame of a spritesheet
@@ -1029,21 +1030,10 @@ export default function CharacterEditor() {
 
             <div className="field-group">
               <label>Color de subtítulo</label>
-              <div className="field-row" style={{ gap: 8, alignItems: 'center' }}>
-                <input type="number" min={0} max={255}
-                  value={activeChar.subtitleColor ?? 15}
-                  style={{ width: 60 }}
-                  onChange={e => updateChar({ subtitleColor: parseInt(e.target.value) || 0 })} />
-                <div style={{
-                  width: 24, height: 24, borderRadius: 4, border: '1px solid #334155',
-                  background: (() => {
-                    const pal = palette
-                    const idx = activeChar.subtitleColor ?? 15
-                    if (pal && pal[idx]) { const [r,g,b] = pal[idx]; return `rgb(${r},${g},${b})` }
-                    return '#ffffff'
-                  })()
-                }} />
-              </div>
+              <PalettePicker
+                palette={palette}
+                value={activeChar.subtitleColor ?? 15}
+                onChange={idx => updateChar({ subtitleColor: idx })} />
               <small>Índice de paleta (0-255) para el texto de diálogo de este personaje</small>
             </div>
 

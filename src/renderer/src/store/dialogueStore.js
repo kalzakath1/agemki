@@ -83,6 +83,16 @@ export const useDialogueStore = create((set, get) => ({
     }
   }),
 
+  // Añade un nodo con ID pre-generado, sin auto-conectar (para onceNextId)
+  addNodeWithId: (type, id) => set(s => {
+    if (!s.activeDialogue) return {}
+    const node = makeDefaultNode(id, type)
+    return {
+      activeDialogue: { ...s.activeDialogue, nodes: [...s.activeDialogue.nodes, node] },
+      dirty: true,
+    }
+  }),
+
   updateNode: (nodeId, partial) => set(s => {
     if (!s.activeDialogue) return {}
     const { _connections, ...nodePartial } = partial
@@ -120,10 +130,19 @@ export const useDialogueStore = create((set, get) => ({
 
   deleteNode: (nodeId) => set(s => {
     if (!s.activeDialogue) return {}
+    const cleanedNodes = s.activeDialogue.nodes
+      .filter(n => n.id !== nodeId)
+      .map(n => {
+        if (!n.choices) return n
+        const choices = n.choices.map(ch =>
+          ch.onceNextId === nodeId ? { ...ch, onceNextId: null } : ch
+        )
+        return { ...n, choices }
+      })
     return {
       activeDialogue: {
         ...s.activeDialogue,
-        nodes: s.activeDialogue.nodes.filter(n => n.id !== nodeId),
+        nodes: cleanedNodes,
         connections: s.activeDialogue.connections.filter(c => c.from !== nodeId && c.to !== nodeId),
       },
       dirty: true,

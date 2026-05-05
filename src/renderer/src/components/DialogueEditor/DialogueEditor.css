@@ -399,3 +399,36 @@
   padding: 1px 4px;
   border-radius: 3px;
 }
+
+/* ── Extra lines (multi-speaker simultaneous) ─────────────────────────────── */
+.dlg-extralines {
+  margin-top: 8px;
+  border-top: 1px solid rgba(255,255,255,0.07);
+  padding-top: 6px;
+}
+.dlg-extralines__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 4px;
+}
+.dlg-extraline {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 4px;
+  padding: 6px;
+  margin-bottom: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.dlg-extraline__row {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}

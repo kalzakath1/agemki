@@ -1,0 +1,22 @@
+{
+  "recommendations": [
+    "GitHub.copilot",
+    "GitHub.copilot-chat",
+    "ms-vscode.cpptools",
+    "ms-vscode.cpptools-extension-pack",
+    "ms-vscode.intel-pseudoassembler",
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+    "charliermarsh.ruff",
+    "ms-python.python",
+    "ms-python.pylint",
+    "ms-python.debugpy",
+    "ms-vscode.makefile-tools",
+    "eamodio.gitlens",
+    "mhutchie.git-graph",
+    "gruntfuggly.todo-tree",
+    "oderwat.indent-rainbow",
+    "bierner.markdown-preview-github-styles",
+    "yzhang.markdown-all-in-one"
+  ]
+}

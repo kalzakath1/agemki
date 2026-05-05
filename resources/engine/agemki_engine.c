@@ -709,6 +709,7 @@ typedef struct {
     u8   is_movement;
     u8   approach_obj;   /* 1 = personaje camina hasta objeto antes de ejecutar */
     u8   is_pickup;      /* 1 = recoger objeto y mandar al inventario            */
+    u8   is_usar_con;    /* 1 = modo "usar X con": espera segundo objeto al click inv */
     u8   is_give;        /* 1 = verbo dar: seleccionar inv → esperar personaje  */
     u8   col;
     u8   row;
@@ -725,7 +726,7 @@ static char g_action_text[MAX_TEXT_LEN+1] = "";
 static u32  g_text_until_ms = 0;   /* 0 = permanente hasta clear */
 
 /* -- Overlay de texto no bloqueante (SHOW_TEXT scripts / dialogos) ---------- */
-#define MAX_OVERLAYS 4
+#define MAX_OVERLAYS 16
 typedef struct {
     char text[MAX_TEXT_LEN+1];
     u8   color;
@@ -3142,7 +3143,7 @@ void engine_give_object(const char* obj_id, const char* char_id) {
                 u8* buf = (u8*)engine_dat_load_gfx(g_obj_gfx_table[_gi].inv_gfx_id, &sz);
                 DBG("give_object: -> global load gfx='%s' buf=%p\n",
                     g_obj_gfx_table[_gi].inv_gfx_id, (void*)buf);
-                if (buf) { slot->pcx_buf = buf; slot->pcx_size = sz; }
+                if (buf) { slot->pcx_buf = buf; slot->pcx_size = sz; slot->owns_buf = 1; }
                 break;
             }
         }
@@ -3659,6 +3660,7 @@ static void _render_char_item(int i) {
     /* Invalidar dec_buf si el PCX cargado no corresponde al slot activo */
     if (c->dec_buf && ad->id[0] && !_str_eq(ad->id, c->pcx_loaded)) {
         free(c->dec_buf); c->dec_buf = NULL; c->dec_w = 0; c->dec_h = 0;
+        _spr_cache_free(c->spr_cache); c->spr_cache = NULL;
     }
 
     s16 sx  = (s16)(c->x - g_cam_x);
@@ -4356,23 +4358,36 @@ static void _load_verbset_from_dat(const char* vs_id) {
         ve->is_movement  = *p++;
         ve->approach_obj = *p++;
         ve->is_pickup    = *p++;
-        ve->col          = *p++;
-        ve->row          = *p++;
-        /* Colores configurables (normal y hover). Si no existen en el DAT, usar defaults */
+        ve->col          = *p++;   /* screenX — posición columna */
+        ve->row          = *p++;   /* screenY — posición fila */
+        /* Colores (opcionales) */
+        ve->normal_color = 15;
+        ve->hover_color  = 15;
         if (p + 2 <= data + sz) {
             ve->normal_color = *p++;
             ve->hover_color  = *p++;
-        } else {
-            ve->normal_color = 15; /* blanco por defecto */
-            ve->hover_color  = 15;
         }
-        ve->is_give = 0; /* establecido via engine_set_give_verb() desde codegen */
-        DBG("  verb[%d]: id='%s' label='%s' mv=%d approach=%d col=%d row=%d nc=%d hc=%d\n",
+        ve->is_usar_con = 0; /* se rellena desde el bitmask al final del bloque */
+        ve->is_give = 0;     /* establecido via engine_set_give_verb() desde codegen */
+        DBG("  verb[%d]: id='%s' label='%s' mv=%d approach=%d usar_con=%d col=%d row=%d nc=%d hc=%d\n",
             (int)g_verb_count, ve->id, ve->label,
-            (int)ve->is_movement, (int)ve->approach_obj,
+            (int)ve->is_movement, (int)ve->approach_obj, (int)ve->is_usar_con,
             (int)ve->col, (int)ve->row,
             (int)ve->normal_color, (int)ve->hover_color);
         g_verb_count++;
+    }
+    /* isUsarCon bitmask: 2 bytes opcionales después de todos los verbos.
+     * DATs anteriores a v0.7 no los tienen → is_usar_con queda a 0. */
+    if (p + 2 <= data + sz) {
+        u8 mask_lo = *p++;
+        u8 mask_hi = *p++;
+        { int _mi;
+          for (_mi = 0; _mi < g_verb_count; _mi++) {
+              u8 bit = (_mi < 8) ? ((mask_lo >> _mi) & 1u)
+                                 : ((mask_hi >> (_mi - 8)) & 1u);
+              g_verbs[_mi].is_usar_con = bit;
+          }
+        }
     }
     free(data);
 }
@@ -4872,7 +4887,11 @@ void engine_flip(void) {
                       } else {
                           ox = ov->x;
                       }
-                      engine_draw_text((s16)(ox+1), (s16)(_ly+1), VERB_FONT, 0, 0, _ln);
+                      { static const s16 _odx[8]={-1,0,1,-1,1,-1,0,1};
+                        static const s16 _ody[8]={-1,-1,-1,0,0,1,1,1};
+                        int _k; for(_k=0;_k<8;_k++)
+                            engine_draw_text((s16)(ox+_odx[_k]),(s16)(_ly+_ody[_k]),VERB_FONT,0,0,_ln);
+                      }
                       engine_draw_text(ox, _ly, VERB_FONT, ov->color, 0, _ln);
                     }
                     if (!*_te) break;
@@ -5851,7 +5870,7 @@ void engine_run_dialogue(const DialogueNode* nodes, int n, const char* start_id)
                 for (ci = 0; ci < g_char_count; ci++) {
                     if (_str_eq(g_chars[ci].id, ln->speaker_id)) {
                         /* X: base en el centro del personaje (se ajusta por linea) */
-                        ox = g_chars[ci].x;
+                        ox = (s16)(g_chars[ci].x - (s16)g_cam_x);
                         /* Y: mitad entre la cabeza del sprite y y=0 (John Carmack style).
                          * char_top = pie - altura_renderizada; oy = char_top / 2 */
                         { s16 char_h = (g_chars[ci].dec_h > 0) ? (s16)g_chars[ci].dec_h : 40;
@@ -6031,18 +6050,23 @@ void engine_run_dialogue(const DialogueNode* nodes, int n, const char* start_id)
             _dlg_panel_node   = NULL;
 
             if (_cnv == 0 || _chosen < 0) break;
-            /* Registrar uso de la opción si es once o text_key_once */
+            /* Registrar uso y navegar; _is_first=1 si es la primera vez */
             { const DialogueOption* _cho = &cur->options[_chosen];
-              if (_cho->once || (_cho->text_key_once && _cho->text_key_once[0])) {
+              int _is_first = 1;
+              if (_cho->once || (_cho->text_key_once && _cho->text_key_once[0]) ||
+                  (_cho->next_node_id_once && _cho->next_node_id_once[0])) {
                   char _oflg[32]; _opt_flag_key(_cho->text_key, _oflg);
+                  _is_first = !engine_get_flag(_oflg);
                   engine_set_flag(_oflg, "1");
               }
-            }
-            { const char* _nx = cur->options[_chosen].next_node_id;
-              if (!_nx || !_nx[0]) break;
-              cur = NULL;
-              for (i = 0; i < n; i++)
-                  if (_str_eq(nodes[i].id, _nx)) { cur = &nodes[i]; break; }
+              { const char* _nx = (_is_first && _cho->next_node_id_once && _cho->next_node_id_once[0])
+                    ? _cho->next_node_id_once
+                    : _cho->next_node_id;
+                if (!_nx || !_nx[0]) break;
+                cur = NULL;
+                for (i = 0; i < n; i++)
+                    if (_str_eq(nodes[i].id, _nx)) { cur = &nodes[i]; break; }
+              }
             }
         }
     }
@@ -8165,11 +8189,11 @@ int engine_process_input(void) {
                             }
                         } else if (g_selected_verb[0]) {
                             /* Verbo seleccionado + click en inventario */
-                            int _verb_approach=0; int _verb_is_give=0; int _vi2;
+                            int _verb_approach=0; int _verb_is_give=0; int _verb_is_usar_con=0; int _vi2;
                             const char* _vlbl = g_selected_verb;
                             for(_vi2=0;_vi2<g_verb_count;_vi2++)
                                 if(_str_eq(g_verbs[_vi2].id,g_selected_verb))
-                                    {_verb_approach=g_verbs[_vi2].approach_obj; _verb_is_give=g_verbs[_vi2].is_give; _vlbl=g_verbs[_vi2].label; break;}
+                                    {_verb_approach=g_verbs[_vi2].approach_obj; _verb_is_give=g_verbs[_vi2].is_give; _verb_is_usar_con=g_verbs[_vi2].is_usar_con; _vlbl=g_verbs[_vi2].label; break;}
                             if (_verb_is_give) {
                                 /* Verbo dar: entrar en modo dar esperando personaje */
                                 char _onk[52]; const char* _onm;
@@ -8180,8 +8204,8 @@ int engine_process_input(void) {
                                 _strlcpy(g_dar_inv,  clicked_inv,       32);
                                 _strlcpy(g_dar_verb, g_selected_verb,   32);
                                 _strlcpy(g_action_text, g_dar_base, sizeof(g_action_text));
-                            } else if (_verb_approach) {
-                                /* Verbo "usar" (approach_obj=1): siempre entrar en modo usar_con */
+                            } else if (_verb_is_usar_con) {
+                                /* Verbo "usar con": entrar en modo usar_con esperando segundo objeto */
                                 char _onk[52]; const char* _onm;
                                 snprintf(_onk,sizeof(_onk),"obj.%.39s.name",clicked_inv);
                                 _onm=engine_text(_onk); if(_onm==_onk)_onm=clicked_inv;
@@ -8220,7 +8244,7 @@ int engine_process_input(void) {
                               if (_has_usar_con) {
                                   const char* _uvlbl = "Usar"; int _vk;
                                   for(_vk=0;_vk<g_verb_count;_vk++)
-                                      if(g_verbs[_vk].approach_obj && !g_verbs[_vk].is_movement)
+                                      if(g_verbs[_vk].is_usar_con)
                                           {_uvlbl=g_verbs[_vk].label;break;}
                                   char _nk[52]; const char* _nm;
                                   snprintf(_nk,sizeof(_nk),"obj.%.39s.name",clicked_inv);
