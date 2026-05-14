@@ -519,6 +519,18 @@ function TriggerEditor({ trigger, onChange, data }) {
           </label>
         )
       })()}
+      {tdef.fields.includes('exitId') && (() => {
+        const selectedRoom = rooms.find(r => r.id === trigger.roomId)
+        const exits = selectedRoom?.exits || []
+        return (
+          <label>Salida
+            <select value={trigger.exitId || ''} onChange={e => up({ exitId: e.target.value })}>
+              <option value="">— selecciona room primero —</option>
+              {exits.map(ex => <option key={ex.id} value={ex.id}>{ex.name || ex.id}</option>)}
+            </select>
+          </label>
+        )
+      })()}
       {tdef.fields.includes('dialogueId') && (
         <label>Diálogo
           <select value={trigger.dialogueId || ''} onChange={e => up({ dialogueId: e.target.value })}>

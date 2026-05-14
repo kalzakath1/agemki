@@ -54,6 +54,7 @@ typedef signed long    int32_t;
 #define MAX_ENTRIES     16      /* entry points en una room */
 #define MAX_WALK_RECTS  64      /* rect?ngulos de walkmap */
 #define MAX_VERB_HANDLERS 128   /* handlers verbo+objeto registrados */
+#define MAX_EXIT_VIA_HANDLERS 16 /* handlers exit_via por room */
 #define MAX_TEXT_LEN    255     /* longitud m?xima de texto en pantalla */
 #define MAX_INVENTORY   32      /* objetos en inventario del protagonista */
 #define MAX_DIALOGUE_NODES 64   /* nodos en un di?logo */
@@ -497,6 +498,7 @@ void engine_on_sequence_end(const char* seq_id, void (*handler)(void));
 void engine_on_room_load(void (*handler)(void));
 void engine_on_room_enter(void (*handler)(void));
 void engine_on_room_exit(void (*handler)(void));
+void engine_on_exit_via(const char* exit_id, void (*handler)(void));
 const char* engine_get_cur_entry(void);    /* ID de la entrada usada al llegar a la room actual */
 int engine_cur_entry_is(const char* id);   /* 1 si la entrada actual coincide con id */
 

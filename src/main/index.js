@@ -3839,7 +3839,7 @@ async function generateMainC(gameDir, audioDriver) {
       e(`    engine_stop_midi();`)
     }
 
-    // Scripts de esta room (triggers room_load, room_enter, room_enter_via, room_exit)
+    // Scripts de esta room (triggers room_load, room_enter, room_enter_via, room_exit, room_exit_via)
     const roomScripts = scriptIds
       .map(sid => scripts[sid])
       .filter(s => s?.trigger?.roomId === id)
@@ -3847,10 +3847,14 @@ async function generateMainC(gameDir, audioDriver) {
       e(`    /* scripts de la room */`)
       const enterScripts    = roomScripts.filter(s => s.trigger?.type === 'room_enter')
       const enterViaScripts = roomScripts.filter(s => s.trigger?.type === 'room_enter_via')
+      const exitViaScripts  = roomScripts.filter(s => s.trigger?.type === 'room_exit_via')
       for (const s of roomScripts) {
         const trigType = s.trigger?.type || ''
         if (trigType === 'room_load') e(`    engine_on_room_load(scr_${cId(s.id)});`)
         if (trigType === 'room_exit') e(`    engine_on_room_exit(scr_${cId(s.id)});`)
+      }
+      for (const s of exitViaScripts) {
+        e(`    engine_on_exit_via("${cStr(s.trigger.exitId)}", scr_${cId(s.id)});`)
       }
       // room_enter + room_enter_via: si hay más de un handler se usa un dispatcher
       if (enterScripts.length === 1 && enterViaScripts.length === 0) {
@@ -3888,6 +3892,8 @@ async function generateMainC(gameDir, audioDriver) {
       e(`    engine_on_usar_con("${cStr(tr.objectId)}", "${cStr(tr.targetId || '')}", scr_${cId(id)}, ${tr.requireBothInv ? 1 : 0});`)
     } else if (tr.type === 'object_click') {
       e(`    engine_on_object_click("${cStr(tr.objectId)}", scr_${cId(id)});`)
+    } else if (tr.type === 'verb_object') {
+      e(`    engine_on_verb_object("${cStr(tr.verbId)}", "${cStr(tr.objectId)}", scr_${cId(id)});`)
     } else if (tr.type === 'verb_char') {
       e(`    engine_on_verb_object("${cStr(tr.verbId)}", "${cStr(tr.charId)}", scr_${cId(id)});`)
     } else if (tr.type === 'game_start') {

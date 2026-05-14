@@ -626,6 +626,10 @@ typedef struct {
 static VerbHandler g_verb_handlers[MAX_VERB_HANDLERS];
 static int         g_verb_handler_count = 0;
 
+typedef struct { char exit_id[32]; void (*fn)(void); } ExitViaHandler;
+static ExitViaHandler g_exit_via_handlers[MAX_EXIT_VIA_HANDLERS];
+static int            g_exit_via_count = 0;
+
 /* Estado "usar con": primer objeto seleccionado esperando segundo */
 static int  g_usar_con_mode = 0;       /* 1 = esperando segundo objeto */
 static char g_usar_con_inv[32]  = "";  /* obj1 del inventario */
@@ -657,7 +661,8 @@ static int           g_seq_end_count = 0;
 /* -- Control del bucle ------------------------------------------------------ */
 static int g_running            = 0;
 static int g_exit_blocked       = 0;
-static char g_pending_exit_id[32] = ""; /* exit al que el jugador caminó explícitamente */
+static char g_pending_exit_id[32]  = ""; /* exit al que el jugador caminó explícitamente */
+static char g_exiting_via_id[32]   = ""; /* copia del exit_id al entrar en engine_change_room */
 static int g_ui_hidden          = 0;  /* 1 = ocultar verbos+inventario durante secuencias */
 static void (*g_pre_flip_fn)(void) = NULL; /* hook llamado justo antes de _vga_flip — para overlays sobre la escena */
 static int g_bg_fullscreen      = 0;  /* 1 = fondo 320x200, sin UI, sin hover, sin exits */
@@ -739,6 +744,8 @@ typedef struct {
 } Overlay;
 static Overlay g_overlays[MAX_OVERLAYS];
 static u8   g_overlay_click_seen = 0;
+static u8   g_say_skip = 0; /* 1 = saltar siguiente engine_say (usuario hizo click para caminar) */
+static u8   g_in_say   = 0; /* reentrada: 1 = hay un engine_say bloqueante activo en el stack */
 static u8   g_script_running  = 0;
 static u8   g_walk_scripted   = 0; /* 1 = protagonista camina por script, bloquea input */
 
@@ -1687,7 +1694,8 @@ static void _room_clear_state(void) {
     g_bg_layer_count    = 0;
     g_entry_count = 0;
     g_exit_count  = 0;
-    g_pending_exit_id[0] = '\0'; /* limpiar exit pendiente al cambiar de room */
+    g_pending_exit_id[0]  = '\0'; /* limpiar exit pendiente al cambiar de room */
+    g_exiting_via_id[0]   = '\0';
     g_walk_scripted = 0;         /* cancelar bloqueo de input por walk de script */
     g_pending.type = PEND_NONE; g_pending.fn = NULL; /* cancelar accion pendiente — pertenecia a la room anterior */
     g_dar_mode = 0; g_dar_inv[0] = '\0'; g_dar_base[0] = '\0'; /* cancelar dar pendiente */
@@ -1698,6 +1706,7 @@ static void _room_clear_state(void) {
     g_on_room_load  = NULL;
     g_on_room_enter = NULL;
     g_on_room_exit  = NULL;
+    g_exit_via_count = 0;
     g_room_light_count = 0;
     g_ambient_light    = 100;
     g_lmap_dirty       = 1;
@@ -1731,7 +1740,19 @@ void engine_change_room(const char* room_id, const char* entry_id) {
         entry_id,
         g_char_count);
 
-    /* Disparar room_exit si hay handler y no esta bloqueado */
+    /* Disparar exit_via: handler de salida concreta (tiene prioridad sobre room_exit genérico).
+     * Usa g_exiting_via_id porque _check_exits() ya borró g_pending_exit_id antes de llegar aquí.
+     * El handler REEMPLAZA la transición: siempre retorna sin cambiar de sala. Si el script quiere
+     * continuar el cambio de sala, debe llamar engine_change_room() él mismo. */
+    if (g_exiting_via_id[0] && g_exit_via_count > 0) {
+        int _ev; for (_ev = 0; _ev < g_exit_via_count; _ev++) {
+            if (_str_eq(g_exit_via_handlers[_ev].exit_id, g_exiting_via_id)) {
+                g_exit_via_handlers[_ev].fn();
+                return;
+            }
+        }
+    }
+    /* Disparar room_exit genérico si hay handler y no esta bloqueado */
     if (g_on_room_exit) {
         g_exit_blocked = 0;
         g_on_room_exit();
@@ -2002,7 +2023,7 @@ void engine_change_room(const char* room_id, const char* entry_id) {
     if (g_on_room_load) g_on_room_load();
 
     /* Disparar room_enter */
-    if (g_on_room_enter) { DBG("change_room: firing on_room_enter\n"); g_on_room_enter(); }
+    if (g_on_room_enter) { DBG("change_room: firing on_room_enter\n"); g_say_skip = 0; g_on_room_enter(); }
 
     /* Flush: dibujar la nueva room una vez antes de continuar la secuencia.
      * Sin esto, engine_seq_show_text toma g_ticks_ms antes de que el fondo
@@ -3924,22 +3945,26 @@ static void _protagonist_talk_start(u32 duration_ms) {
         else
             talk_role = c->anims[ANIM_TALK].id[0] ? ANIM_TALK : ANIM_IDLE;
     }
-    DBG("talk_start: cur_anim=%d talk_role=%d pcx='%s' talk='%s' talk_up='%s'\n",
-        (int)c->cur_anim, talk_role,
-        c->anims[talk_role].id,
+    DBG("talk_start: cur_anim=%d talk_role=%d idle_role=%d pcx_loaded='%s' talk='%s' talk_up='%s' pcx_buf=%s dec_buf=%s\n",
+        (int)c->cur_anim, talk_role, idle_role,
+        c->pcx_loaded,
         c->anims[ANIM_TALK].id,
-        c->anims[ANIM_TALK_UP].id);
-    if (!c->anims[talk_role].id[0]) return; /* sin PCX: no cambiar */
+        c->anims[ANIM_TALK_UP].id,
+        c->pcx_buf ? "OK" : "NULL",
+        c->dec_buf ? "OK" : "NULL");
+    if (!c->anims[talk_role].id[0]) { DBG("talk_start: no anim id, return\n"); return; }
     CHAR_SET_ANIM(c, talk_role);
     c->frame_cur = 0; c->frame_timer = g_ticks_ms;
     if (strcmp(c->anims[talk_role].id, c->pcx_loaded) != 0) {
+        DBG("talk_start: loading new PCX '%s'\n", c->anims[talk_role].id);
         if (c->pcx_buf) { free(c->pcx_buf); c->pcx_buf = NULL; }
         if (c->dec_buf) { free(c->dec_buf); c->dec_buf = NULL; c->dec_w = 0; c->dec_h = 0; }
         _spr_cache_free(c->spr_cache); c->spr_cache = NULL;
         c->pcx_buf = (u8*)engine_dat_load_gfx(c->anims[talk_role].id, &sz2);
         c->pcx_size = sz2;
+        DBG("talk_start: pcx_buf after load=%s sz=%u\n", c->pcx_buf ? "OK" : "NULL", sz2);
         _strlcpy(c->pcx_loaded, c->anims[talk_role].id, 32);
-    }
+    } else { DBG("talk_start: PCX already loaded\n"); }
     g_talk_restore_ms = g_ticks_ms + duration_ms;
     g_talk_idle_role  = (u8)idle_role;
 }
@@ -3952,7 +3977,10 @@ static void _talk_restore_check(void) {
     g_talk_restore_ms = 0;
     if (!g_char_count) return;
     c = &g_chars[g_protagonist];
-    if (c->walking) return; /* si está caminando, el walk completion lo restaurará */
+    if (c->walking) { DBG("talk_restore: walking, skip\n"); return; }
+    DBG("talk_restore: idle_role=%d pcx_loaded='%s' idle_id='%s'\n",
+        g_talk_idle_role, c->pcx_loaded,
+        c->anims[g_talk_idle_role].id[0] ? c->anims[g_talk_idle_role].id : "(none)");
     CHAR_SET_ANIM(c, g_talk_idle_role);
     c->frame_cur = 0; c->frame_timer = g_ticks_ms;
     if (c->anims[g_talk_idle_role].id[0] &&
@@ -3962,6 +3990,7 @@ static void _talk_restore_check(void) {
         _spr_cache_free(c->spr_cache); c->spr_cache = NULL;
         c->pcx_buf = (u8*)engine_dat_load_gfx(c->anims[g_talk_idle_role].id, &sz3);
         c->pcx_size = sz3;
+        DBG("talk_restore: loaded idle pcx=%s sz=%u\n", c->pcx_buf ? "OK" : "NULL", sz3);
         _strlcpy(c->pcx_loaded, c->anims[g_talk_idle_role].id, 32);
     }
 }
@@ -5358,9 +5387,15 @@ void engine_say(const char* char_id, const char* text_key) {
     s16 char_sx = (s16)(AG_SCREEN_W / 2); s16 oy = 30;
     u32 duration_ms, until;
     int len, nlines; const char* p;
+    int _clicked = 0;
+    DBG("engine_say: key='%s' skip=%d script=%d in_say=%d chars=%d prot=%d\n",
+        text_key ? text_key : "(null)", (int)g_say_skip, (int)g_script_running,
+        (int)g_in_say, g_char_count, g_protagonist);
+    if (g_say_skip) { DBG("engine_say: SKIPPED\n"); return; }
+    g_in_say++;
     (void)char_id; /* siempre usa el protagonista activo */
     txt = engine_text(text_key);
-    if (!txt || !txt[0] || txt == text_key) return;
+    if (!txt || !txt[0] || txt == text_key) { DBG("engine_say: no text found\n"); g_in_say--; return; }
     /* Word-wrap: 38 cols para FONT_SMALL 8px (304px usables de 320) */
     _word_wrap(txt, _wb, MAX_TEXT_LEN+1, 38);
     txt = _wb;
@@ -5380,6 +5415,10 @@ void engine_say(const char* char_id, const char* text_key) {
     duration_ms = (u32)(len * 60 + 1200);
     if (duration_ms > 6000) duration_ms = 6000;
     /* Iniciar animacion de hablar */
+    DBG("engine_say: talk_start dur=%u pcx_loaded='%s' dec_buf=%s\n",
+        duration_ms,
+        (g_char_count > 0) ? g_chars[g_protagonist].pcx_loaded : "N/A",
+        (g_char_count > 0 && g_chars[g_protagonist].dec_buf) ? "OK" : "NULL");
     _protagonist_talk_start(duration_ms);
     /* Mostrar overlay con centrado por linea sobre el personaje */
     _overlay_add_say(txt, 15, char_sx, oy, g_ticks_ms + duration_ms);
@@ -5389,11 +5428,15 @@ void engine_say(const char* char_id, const char* text_key) {
     while (g_running && g_ticks_ms < until) {
         engine_flip();
         if (!engine_process_input()) break;
-        if (g_overlay_click_seen) break;
+        if (g_overlay_click_seen) { _clicked = 1; break; }
     }
     _overlay_clear_all();
     g_overlay_click_seen = 0;
+    /* Si el usuario hizo click para saltar (no timeout), propagar a líneas extra del mismo handler */
+    if (_clicked) g_say_skip = 1;
     /* Forzar restauracion de idle inmediatamente */
+    g_in_say--;
+    DBG("engine_say: done clicked=%d skip_now=%d in_say=%d\n", _clicked, (int)g_say_skip, (int)g_in_say);
     g_talk_restore_ms = g_ticks_ms;
     _talk_restore_check();
 }
@@ -5410,7 +5453,9 @@ void engine_say_anim(const char* char_id, const char* text_key, const char* anim
     s16 char_sx = (s16)(AG_SCREEN_W / 2); s16 oy = 30;
     u32 duration_ms, until;
     int len, nlines; const char* p;
+    int _clicked = 0;
     u8 restore_role = ANIM_IDLE;
+    if (g_say_skip) return; /* línea anterior descartada por click: saltar */
     (void)char_id;
     txt = engine_text(text_key);
     if (!txt || !txt[0] || txt == text_key) return;
@@ -5446,10 +5491,11 @@ void engine_say_anim(const char* char_id, const char* text_key, const char* anim
     while (g_running && g_ticks_ms < until) {
         engine_flip();
         if (!engine_process_input()) break;
-        if (g_overlay_click_seen) break;
+        if (g_overlay_click_seen) { _clicked = 1; break; }
     }
     _overlay_clear_all();
     g_overlay_click_seen = 0;
+    if (_clicked) g_say_skip = 1;
     g_talk_restore_ms = g_ticks_ms;
     _talk_restore_check();
 }
@@ -6324,6 +6370,12 @@ void engine_on_game_start(void (*handler)(void))  { g_on_game_start  = handler; 
 void engine_on_room_load(void (*handler)(void))   { g_on_room_load   = handler; }
 void engine_on_room_enter(void (*handler)(void))  { g_on_room_enter  = handler; }
 void engine_on_room_exit(void (*handler)(void))   { g_on_room_exit   = handler; }
+void engine_on_exit_via(const char* exit_id, void (*handler)(void)) {
+    if (g_exit_via_count >= MAX_EXIT_VIA_HANDLERS || !exit_id || !exit_id[0]) return;
+    _strlcpy(g_exit_via_handlers[g_exit_via_count].exit_id, exit_id, 32);
+    g_exit_via_handlers[g_exit_via_count].fn = handler;
+    g_exit_via_count++;
+}
 void engine_block_exit(void)                      { g_exit_blocked   = 1; }
 const char* engine_get_cur_entry(void)            { return g_cur_entry; }
 int engine_cur_entry_is(const char* id)           { return _str_eq(g_cur_entry, id); }
@@ -6425,6 +6477,7 @@ static void _check_exits(void) {
         if (!_str_eq(g_exits[i].id, g_pending_exit_id)) continue;
         if (px >= tz->x - tol_x && px <= tz->x + tz->w + tol_x &&
             py >= tz->y - tol_y && py <= tz->y + tz->h + tol_y) {
+            _strlcpy(g_exiting_via_id, g_exits[i].id, 32); /* preservar para dispatch en engine_change_room */
             g_pending_exit_id[0] = '\0';
             engine_change_room(g_exits[i].target_room, g_exits[i].target_entry);
             return;
@@ -8331,11 +8384,12 @@ int engine_process_input(void) {
                                 _strlcpy(g_usar_con_inv,clicked_inv,32);
                                 _strlcpy(g_usar_con_verb,g_selected_verb,32);
                                 _strlcpy(g_action_text,g_usar_con_base,sizeof(g_action_text));
-                            } else {
-                                /* Verbo no-usar: handler directo o respuesta texto */
+                            } else if (!g_in_say) {
+                                /* Verbo no-usar: handler directo o respuesta texto.
+                                 * Guard: no reentrar si hay un engine_say bloqueante activo. */
                                 int _hi; int _found=0;
                                 _hi = _find_verb_handler(g_selected_verb, clicked_inv, 1);
-                                if (_hi >= 0) { g_verb_handlers[_hi].fn(); _reset_verb_action(); _found=1; }
+                                if (_hi >= 0) { g_say_skip = 0; g_verb_handlers[_hi].fn(); _reset_verb_action(); _found=1; }
                                 if (!_found) {
                                     char _rk[96]; const char* _resp;
                                     snprintf(_rk,sizeof(_rk),"obj.%s.inv_verb.%s",clicked_inv,g_selected_verb);
@@ -8379,11 +8433,12 @@ int engine_process_input(void) {
                             int _vi; const char* _defverb = "";
                             for(_vi=0;_vi<g_verb_count;_vi++)
                                 if(g_verbs[_vi].is_movement){_defverb=g_verbs[_vi].id;break;}
-                            if (_defverb[0]) {
-                                /* Buscar handler para verbo por defecto + inv */
+                            if (_defverb[0] && !g_in_say) {
+                                /* Buscar handler para verbo por defecto + inv.
+                                 * Guard: no reentrar si hay un engine_say bloqueante activo. */
                                 int _hi; int _found=0;
                                 _hi = _find_verb_handler(_defverb, clicked_inv, 1);
-                                if (_hi >= 0) { g_verb_handlers[_hi].fn(); _found=1; }
+                                if (_hi >= 0) { g_say_skip = 0; g_verb_handlers[_hi].fn(); _found=1; }
                                 if (!_found) {
                                     /* Mostrar respuesta de texto */
                                     char _rk[96]; const char* _resp=NULL;
@@ -9062,12 +9117,18 @@ int engine_process_input(void) {
                           engine_face_dir(_fpr->id, _fdir);
                       }
                     }
+                    DBG("PEND_HANDLER: obj='%s' verb='%s' fn=%s chars=%d prot=%d\n",
+                        g_pending.obj_id, g_pending.verb_id,
+                        fn ? "set" : "NULL", g_char_count, g_protagonist);
                     g_pending.type = PEND_NONE;
                     g_pending.fn   = NULL;
                     g_selected_verb[0] = '\0';
                     do { _mouse_poll(); } while (g_mouse.buttons);
+                    g_say_skip = 0;
                     g_script_running = 1;
+                    DBG("PEND_HANDLER: calling fn say_skip=%d\n", (int)g_say_skip);
                     if (fn) fn();
+                    DBG("PEND_HANDLER: fn returned\n");
                     do { _mouse_poll(); } while (g_mouse.buttons);
                     g_script_running = 0;
                     break;
@@ -9143,7 +9204,7 @@ int engine_process_input(void) {
                         if (_dhi >= 0 && g_verb_handlers[_dhi].fn) {
                             _strlcpy(g_dar_target, _tgt, 32);
                             do { _mouse_poll(); } while (g_mouse.buttons);
-                            g_script_running=1; g_verb_handlers[_dhi].fn(); g_script_running=0;
+                            g_say_skip = 0; g_script_running=1; g_verb_handlers[_dhi].fn(); g_script_running=0;
                             do { _mouse_poll(); } while (g_mouse.buttons);
                             _dfound=1;
                         }

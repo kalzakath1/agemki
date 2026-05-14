@@ -24,6 +24,8 @@ import { create } from 'zustand'
 
 /** @type {Record<string, {label:string, icon:string, fields:string[]}>} */
 export const TRIGGERS = {
+  // El jugador aplica un verbo a un objeto de escena
+  verb_object:        { label: 'Verbo + Objeto de escena', icon: '🖱️',  fields: ['verbId','objectId'] },
   // El jugador aplica un verbo a un personaje
   verb_char:          { label: 'Verbo + Personaje',       icon: '💬',  fields: ['verbId','charId'] },
   // El jugador elige una opción en un diálogo
@@ -38,6 +40,8 @@ export const TRIGGERS = {
   room_enter_via:     { label: 'Al entrar por entrada',   icon: '🚪',  fields: ['roomId', 'entryId'] },
   // El protagonista intenta usar una salida — puede bloquearse con BLOCK_EXIT
   room_exit:          { label: 'Al intentar salir',       icon: '🚪',  fields: ['roomId'] },
+  // Igual que room_exit pero solo si intenta salir por una salida concreta
+  room_exit_via:      { label: 'Al intentar salir por...', icon: '🚪', fields: ['roomId', 'exitId'] },
   // La room se carga en memoria (antes del primer frame) — ideal para música
   room_load:          { label: 'Al cargar room',          icon: '🏠',  fields: ['roomId'] },
   // Una secuencia de cutscene termina
