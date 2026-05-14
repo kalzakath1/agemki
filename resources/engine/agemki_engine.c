@@ -2601,15 +2601,20 @@ void engine_set_anim_pcx(const char* char_id, const char* pcx_id, int frames, in
             c->pcx_buf  = new_buf;
             c->pcx_size = new_sz;
             _strlcpy(c->pcx_loaded, pcx_id, 32);
-            /* Pre-decodificar para que dec_w este disponible antes del primer render.
-             * Imprescindible cuando fw=0: el render lo calcula como dec_w/frames. */
+            /* Pre-decodificar: obtener dimensiones y construir spr_cache. */
             { u16 _dw = 0, _dh = 0;
               _pcx_decode(new_buf, new_sz, g_pcx_decode_buf, &_dw, &_dh, 0);
               if (_dw > 0 && _dh > 0) {
                   c->dec_w = _dw; c->dec_h = _dh;
+                  /* fw=0 con frames>1: calcular fw desde ancho total */
+                  if (c->anims[ANIM_CUSTOM].fw == 0 && c->anims[ANIM_CUSTOM].frames > 1)
+                      c->anims[ANIM_CUSTOM].fw = (u16)(_dw / (u16)c->anims[ANIM_CUSTOM].frames);
                   if ((u32)_dw * _dh <= (u32)AG_SCREEN_PIXELS) {
                       c->dec_buf = (u8*)malloc((u32)_dw * _dh);
-                      if (c->dec_buf) memcpy(c->dec_buf, g_pcx_decode_buf, (u32)_dw * _dh);
+                      if (c->dec_buf) {
+                          memcpy(c->dec_buf, g_pcx_decode_buf, (u32)_dw * _dh);
+                          c->spr_cache = _spr_cache_build(c->dec_buf, _dw, _dh);
+                      }
                   }
               }
             }
@@ -5891,17 +5896,21 @@ void engine_run_dialogue(const DialogueNode* nodes, int n, const char* start_id)
 
         for (li = 0; li < cur->num_lines; li++) {
             const DialogueLine* ln = &cur->lines[li];
+            /* Resolver __protagonist__ al ID real del protagonista activo */
+            const char* _spk = ln->speaker_id;
+            if (_spk[0] == '_' && _str_eq(_spk, "__protagonist__") && g_char_count > 0)
+                _spk = g_chars[g_protagonist].id;
             /* Saltar línea si char_filter no coincide con el protagonista activo */
             if (ln->char_filter && ln->char_filter[0]) {
                 const char* _pid = (g_char_count > 0) ? g_chars[g_protagonist].id : "";
                 if (!_str_eq(ln->char_filter, _pid)) continue;
             }
             const char* txt = engine_text(ln->text_key);
-            DBG("dlg line %d: speaker=\'%s\' txt=\'%s\'\n", li, ln->speaker_id, txt ? txt : "(null)");
+            DBG("dlg line %d: speaker=\'%s\' txt=\'%s\'\n", li, _spk, txt ? txt : "(null)");
 
             /* Animacion y orientacion.
              * Formato animation: "rol" o "pcxid|frames|fps|fw" (animacion personalizada) */
-            if (ln->speaker_id[0]) {
+            if (_spk[0]) {
                 if (ln->animation && ln->animation[0]) {
                     const char* _pipe = ln->animation;
                     while (*_pipe && *_pipe != '|') _pipe++;
@@ -5916,9 +5925,9 @@ void engine_run_dialogue(const DialogueNode* nodes, int n, const char* start_id)
                           _fp = 0; while (*_p>='0'&&*_p<='9') _fp=_fp*10+(*_p++)-'0'; if (*_p=='|') _p++;
                           _fw = 0; while (*_p>='0'&&*_p<='9') _fw=_fw*10+(*_p++)-'0';
                         }
-                        engine_set_anim_pcx(ln->speaker_id, _pid, _fr, _fp, _fw);
+                        engine_set_anim_pcx(_spk, _pid, _fr, _fp, _fw);
                     } else {
-                        engine_seq_set_anim(ln->speaker_id, ln->animation, 0, 1, 0);
+                        engine_seq_set_anim(_spk, ln->animation, 0, 1, 0);
                     }
                 }
                 /* direction = animacion final: se aplica DESPUES del wait, no aqui */
@@ -5934,10 +5943,10 @@ void engine_run_dialogue(const DialogueNode* nodes, int n, const char* start_id)
             /* Calcular posicion X base y color */
             s16 ox = -1, oy = 10;
             u8 sc = 15;
-            if (ln->speaker_id[0]) {
+            if (_spk[0]) {
                 int ci;
                 for (ci = 0; ci < g_char_count; ci++) {
-                    if (_str_eq(g_chars[ci].id, ln->speaker_id)) {
+                    if (_str_eq(g_chars[ci].id, _spk)) {
                         /* X: base en el centro del personaje (se ajusta por linea) */
                         ox = (s16)(g_chars[ci].x - (s16)g_cam_x);
                         /* Y: mitad entre la cabeza del sprite y y=0 (John Carmack style).
@@ -6018,7 +6027,10 @@ void engine_run_dialogue(const DialogueNode* nodes, int n, const char* start_id)
             { int _fli;
               for (_fli = 0; _fli < cur->num_lines; _fli++) {
                   const DialogueLine* _fl = &cur->lines[_fli];
-                  if (!_fl->speaker_id[0] || !_fl->direction || !_fl->direction[0]) continue;
+                  const char* _fspk = _fl->speaker_id;
+                  if (_fspk[0] == '_' && _str_eq(_fspk, "__protagonist__") && g_char_count > 0)
+                      _fspk = g_chars[g_protagonist].id;
+                  if (!_fspk[0] || !_fl->direction || !_fl->direction[0]) continue;
                   { const char* _fp2 = _fl->direction;
                     while (*_fp2 && *_fp2 != '|') _fp2++;
                     if (*_fp2 == '|') {
@@ -6031,9 +6043,9 @@ void engine_run_dialogue(const DialogueNode* nodes, int n, const char* start_id)
                           _fp3=0; while(*_p2>='0'&&*_p2<='9') _fp3=_fp3*10+(*_p2++)-'0'; if(*_p2=='|')_p2++;
                           _fw2=0; while(*_p2>='0'&&*_p2<='9') _fw2=_fw2*10+(*_p2++)-'0';
                         }
-                        engine_set_anim_pcx(_fl->speaker_id, _pid2, _fr2, _fp3, _fw2);
+                        engine_set_anim_pcx(_fspk, _pid2, _fr2, _fp3, _fw2);
                     } else {
-                        engine_set_anim(_fl->speaker_id, _fl->direction);
+                        engine_set_anim(_fspk, _fl->direction);
                     }
                   }
               }
@@ -8061,10 +8073,12 @@ int engine_process_input(void) {
             if (hover_exit) {
                 _uc_nm = engine_text(hover_exit->name_key);
                 if (_str_eq(_uc_nm, hover_exit->name_key)) _uc_nm = hover_exit->id;
+            } else if (hover[0]) {
+                snprintf(_uc_nk, sizeof(_uc_nk), "obj.%.39s.name", hover);
+                _uc_nm = engine_text(_uc_nk); if (_uc_nm == _uc_nk) _uc_nm = hover;
             } else {
-                const char* _tgt = hover[0] ? hover : hover_char;
-                snprintf(_uc_nk, sizeof(_uc_nk), "obj.%.39s.name", _tgt);
-                _uc_nm = engine_text(_uc_nk); if (_uc_nm == _uc_nk) _uc_nm = _tgt;
+                snprintf(_uc_nk, sizeof(_uc_nk), "char.%.39s.name", hover_char);
+                _uc_nm = engine_text(_uc_nk); if (_uc_nm == _uc_nk) _uc_nm = hover_char;
             }
         } else if (g_inv_hover >= 0) { InvSlot* _ivs = _inv_prot_slot(g_inv_hover); if (_ivs) {
             /* Y = objeto de inventario */

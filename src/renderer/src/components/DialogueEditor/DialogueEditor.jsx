@@ -690,6 +690,46 @@ function NodeInspector({ node, dialogue, gameDir, chars, objects, scripts, onUpd
   // Helper: write localized text
   function setT(key, value) { if (key) setKey(activeLang, key, value) }
 
+  // Picker de animación: modo protagonista (12 roles + texto libre) o modo personaje (select normal)
+  function AnimPicker({ actorId, anims, value, onChange, placeholder = '— sin cambio —' }) {
+    if (actorId === '__protagonist__') {
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+          <select value="" onChange={e => { if (e.target.value) onChange(e.target.value) }}
+            style={{ fontSize: '11px' }}>
+            <option value="">— rol base... —</option>
+            <optgroup label="Talk">
+              {['talk_up','talk_down','talk_left','talk_right'].map(r => <option key={r} value={r}>{r}</option>)}
+            </optgroup>
+            <optgroup label="Walk">
+              {['walk_up','walk_down','walk_left','walk_right'].map(r => <option key={r} value={r}>{r}</option>)}
+            </optgroup>
+            <optgroup label="Idle">
+              {['idle_up','idle_down','idle_left','idle_right'].map(r => <option key={r} value={r}>{r}</option>)}
+            </optgroup>
+          </select>
+          <input type="text" value={value || ''} placeholder="animación custom o vacío"
+            style={{ fontSize: '11px' }}
+            onChange={e => onChange(e.target.value || null)} />
+        </div>
+      )
+    }
+    const roleNames = ['idle','walk_right','walk_left','walk_up','walk_down','idle_up','idle_down']
+    return (
+      <select value={value || ''} onChange={e => onChange(e.target.value || null)}>
+        <option value="">{placeholder}</option>
+        {anims.length > 0 && (
+          <optgroup label="Animaciones">
+            {anims.map(a => <option key={a.id} value={a.id}>{a.name || a.id}</option>)}
+          </optgroup>
+        )}
+        <optgroup label="Roles del motor">
+          {roleNames.map(r => <option key={r} value={r}>{r}</option>)}
+        </optgroup>
+      </select>
+    )
+  }
+
   function getCharName(id) {
     if (!id) return ''
     const c = chars.find(x => x.id === id)
@@ -740,6 +780,7 @@ function NodeInspector({ node, dialogue, gameDir, chars, objects, scripts, onUpd
             <label>Actor
               <select value={node.actorId || ''} onChange={e => onUpdate(node.id, { actorId: e.target.value || null })}>
                 <option value="">— Narrador —</option>
+                <option value="__protagonist__">— Protagonista activo —</option>
                 {chars.map(c => <option key={c.id} value={c.id}>{getCharName(c.id)}</option>)}
               </select>
             </label>
@@ -752,45 +793,16 @@ function NodeInspector({ node, dialogue, gameDir, chars, objects, scripts, onUpd
               Clave: <code>{node.textKey}</code>
             </label>
             <label>Animación (opcional)
-              {(() => {
-                const actor = chars.find(c => c.id === node.actorId)
-                const anims = actor?.animations || []
-                const roles = actor?.animRoles || {}
-                const roleNames = ['idle','walk_right','walk_left','walk_up','walk_down','idle_up','idle_down']
-                return (
-                  <select value={node.animation || ''} onChange={e => onUpdate(node.id, { animation: e.target.value || null })}>
-                    <option value="">— sin cambio —</option>
-                    {anims.length > 0 && (
-                      <optgroup label="Animaciones">
-                        {anims.map(a => <option key={a.id} value={a.id}>{a.name || a.id}</option>)}
-                      </optgroup>
-                    )}
-                    <optgroup label="Roles del motor">
-                      {roleNames.map(r => <option key={r} value={r}>{r}</option>)}
-                    </optgroup>
-                  </select>
-                )
-              })()}
+              <AnimPicker actorId={node.actorId}
+                anims={chars.find(c => c.id === node.actorId)?.animations || []}
+                value={node.animation}
+                onChange={v => onUpdate(node.id, { animation: v })} />
             </label>
             <label>Animación final (opcional)
-              {(() => {
-                const actor = chars.find(c => c.id === node.actorId)
-                const anims = actor?.animations || []
-                const roleNames = ['idle','walk_right','walk_left','walk_up','walk_down','idle_up','idle_down']
-                return (
-                  <select value={node.direction || ''} onChange={e => onUpdate(node.id, { direction: e.target.value || null })}>
-                    <option value="">— sin cambio —</option>
-                    {anims.length > 0 && (
-                      <optgroup label="Animaciones">
-                        {anims.map(a => <option key={a.id} value={a.id}>{a.name || a.id}</option>)}
-                      </optgroup>
-                    )}
-                    <optgroup label="Roles del motor">
-                      {roleNames.map(r => <option key={r} value={r}>{r}</option>)}
-                    </optgroup>
-                  </select>
-                )
-              })()}
+              <AnimPicker actorId={node.actorId}
+                anims={chars.find(c => c.id === node.actorId)?.animations || []}
+                value={node.direction}
+                onChange={v => onUpdate(node.id, { direction: v })} />
             </label>
             <label title="Solo muestra esta línea si el protagonista activo es el seleccionado">
               Visible solo para protagonista
@@ -814,9 +826,7 @@ function NodeInspector({ node, dialogue, gameDir, chars, objects, scripts, onUpd
                   }}>+ hablante</button>
               </div>
               {(node.extraLines || []).map((el, eli) => {
-                const elActor = chars.find(c => c.id === el.actorId)
-                const elAnims = elActor?.animations || []
-                const roleNames = ['idle','walk_right','walk_left','walk_up','walk_down','idle_up','idle_down']
+                const elAnims = chars.find(c => c.id === el.actorId)?.animations || []
                 return (
                   <div key={el.id} className="dlg-extraline">
                     <div className="dlg-extraline__row">
@@ -827,6 +837,7 @@ function NodeInspector({ node, dialogue, gameDir, chars, objects, scripts, onUpd
                           onUpdate(node.id, { extraLines: updated })
                         }}>
                         <option value="">— Narrador —</option>
+                        <option value="__protagonist__">— Protagonista activo —</option>
                         {chars.map(c => <option key={c.id} value={c.id}>{getCharName(c.id)}</option>)}
                       </select>
                       <button className="btn-icon dlg-card__del" title="Eliminar línea"
@@ -838,38 +849,20 @@ function NodeInspector({ node, dialogue, gameDir, chars, objects, scripts, onUpd
                     <textarea rows={2} placeholder="Texto simultáneo…" style={{ width: '100%', boxSizing: 'border-box' }}
                       value={t(el.textKey)}
                       onChange={e => setT(el.textKey, e.target.value)} />
-                    <select value={el.animation || ''} title="Animación durante la línea"
-                      onChange={e => {
+                    <AnimPicker actorId={el.actorId} anims={elAnims}
+                      value={el.animation || ''}
+                      onChange={v => {
                         const updated = (node.extraLines || []).map((x, i) =>
-                          i === eli ? { ...x, animation: e.target.value || '' } : x)
+                          i === eli ? { ...x, animation: v || '' } : x)
                         onUpdate(node.id, { extraLines: updated })
-                      }}>
-                      <option value="">— sin cambio —</option>
-                      {elAnims.length > 0 && (
-                        <optgroup label="Animaciones">
-                          {elAnims.map(a => <option key={a.id} value={a.id}>{a.name || a.id}</option>)}
-                        </optgroup>
-                      )}
-                      <optgroup label="Roles del motor">
-                        {roleNames.map(r => <option key={r} value={r}>{r}</option>)}
-                      </optgroup>
-                    </select>
-                    <select value={el.direction || ''} title="Animación final (tras la línea)"
-                      onChange={e => {
+                      }} />
+                    <AnimPicker actorId={el.actorId} anims={elAnims}
+                      value={el.direction || ''}
+                      onChange={v => {
                         const updated = (node.extraLines || []).map((x, i) =>
-                          i === eli ? { ...x, direction: e.target.value || '' } : x)
+                          i === eli ? { ...x, direction: v || '' } : x)
                         onUpdate(node.id, { extraLines: updated })
-                      }}>
-                      <option value="">— sin cambio —</option>
-                      {elAnims.length > 0 && (
-                        <optgroup label="Animaciones">
-                          {elAnims.map(a => <option key={a.id} value={a.id}>{a.name || a.id}</option>)}
-                        </optgroup>
-                      )}
-                      <optgroup label="Roles del motor">
-                        {roleNames.map(r => <option key={r} value={r}>{r}</option>)}
-                      </optgroup>
-                    </select>
+                      }} />
                   </div>
                 )
               })}

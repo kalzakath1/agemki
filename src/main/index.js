@@ -2407,6 +2407,7 @@ async function generateDats(gameDir, buildDir, log, useMidpak) {
         }
         let sz = sStr8(vs.id) + sStr8(vs.name||vs.id) + 1
         for (const v of verbs) sz += sStr8(v.id) + sStr8(verbLabel(v)) + 7
+        sz += 2 // bitmask isUsarCon (uint16)
         const buf = Buffer.alloc(sz)
         let off = 0
         off = wStr8(buf, off, vs.id)
@@ -2424,6 +2425,13 @@ async function generateDats(gameDir, buildDir, log, useMidpak) {
           buf.writeUInt8(v.normalColor !== undefined ? v.normalColor : 15, off); off++ // normal_color
           buf.writeUInt8(v.hoverColor  !== undefined ? v.hoverColor  : 15, off); off++ // hover_color
         }
+        // Bitmask isUsarCon: bit i = verbo i tiene isUsarCon
+        let usarConMask = 0
+        for (let i = 0; i < verbs.length && i < 16; i++) {
+          if (verbs[i].isUsarCon) usarConMask |= (1 << i)
+        }
+        buf.writeUInt8(usarConMask & 0xFF, off); off++
+        buf.writeUInt8((usarConMask >> 8) & 0xFF, off); off++
         scrBlocks.push({ id: vs.id, res_type: RES_VERBSET, data: buf.slice(0,off) })
         log('  verbset: ' + (vs.name||vs.id) + ' (' + verbs.length + ' verbos)')
       } catch(e2) { errors.push('verbset ' + f + ': ' + e2.message) }

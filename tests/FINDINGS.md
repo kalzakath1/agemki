@@ -1,0 +1,709 @@
+# Hallazgos durante el montaje de la test suite
+
+Esto NO es una auditoría ni una lista de cosas mal hechas. Es lo que
+salió de **ejercitar el código realmente** mientras montaba la red de
+seguridad: cada vez que un test no encajaba con lo que esperaba, había
+que entender por qué — y a veces el "por qué" era un bug latente que
+nadie había disparado todavía.
+
+Siete cosas en total: **seis bugs reales** (cuatro con fix incluido en
+este PR, dos abiertos que requieren decisión tuya), y **un falso
+positivo (F-02)** que reporté como bug pero al verificarlo en Terminal
+nativa no era. Ninguna te bloquea hoy mismo; las verdaderas las
+descubrió la suite haciendo su trabajo, y la falsa la descubrí yo
+metiendo la pata — ambas cosas están aquí documentadas porque la
+honestidad importa más que la apariencia.
+
+Cada finding tiene:
+- **Resumen en cristiano** — qué pasa, sin tecnicismos.
+- **Reproducción** — cómo verlo en tu máquina.
+- **Impacto** — qué se rompe y cuándo.
+- **Fix** — diff o pasos concretos.
+- **Para ti, ahora mismo** — qué hacer (o no hacer) con esto.
+
+> Foco en bugs que afectan al runtime del juego o al tooling de build.
+> No incluye sugerencias de estilo, ni refactor, ni opiniones sobre
+> arquitectura.
+
+---
+
+## Resumen
+
+| ID | Severidad | Área | Estado | Fix |
+|----|-----------|------|--------|-----|
+| F-01 | Alta | Build (Watcom) | ✅ aplicado en commit `fix(dat,build)` | Sí, en este PR |
+| F-02 | ~~Media~~ ninguna | ~~Build (Node)~~ | ❌ **falso positivo** — descartado | No aplica (mi error de diagnóstico) |
+| F-03 | Media | Documentación | abierto | No — requiere decisión tuya |
+| F-04 | Alta | Codegen DAT | ✅ aplicado en commit `fix(dat,build)` | Sí, en este PR |
+| F-05 | Crítica | Codegen DAT | ✅ aplicado en commit `fix(dat,build)` | Sí, en este PR |
+| F-06 | Media | Motor (walkmap) | abierto | No — requiere tu decisión sobre walkmaps no-rectangulares |
+| F-07 | Baja  | Tooling (git)   | ✅ aplicado en commit `fix(.gitignore)` | Sí, en este PR |
+
+Severidad:
+- **Crítica**: el motor falla silenciosamente en runtime.
+- **Alta**: build no produce artefacto, o produce uno corrupto.
+- **Media**: tooling roto, no afecta a runtime.
+
+---
+
+## F-01 — `-O2` no es flag válido en Open Watcom v2 actual
+
+**Severidad:** Alta · **Estado:** ✅ aplicado · **Fix incluido:** Sí (commit `fix(dat,build)`)
+
+### Resumen en cristiano
+
+Tu Makefile release usa el flag `-O2` (estilo GCC) que la versión actual
+de Open Watcom v2 no entiende. El compilador acepta la línea sin
+quejarse claro, dice "1 errors" sin mensaje, y se niega a escribir el
+`.obj`. Resultado: el build release no produce nada y no es obvio por qué.
+
+El build debug sí funciona porque usa `-d2` en vez de `-O2`. Probable
+que sea por eso que no lo has visto antes.
+
+### Reproducción
+
+[`src/main/index.js:1645`](../src/main/index.js#L1645) genera el Makefile
+release con flags:
+
+```js
+`-3 -mf -O2 -za99 -w3 -wcd202 -wcd102 ${cellDefine}`
+```
+
+Compilando un `.c` cualquiera del motor con esos flags en Open Watcom v2
+beta (Apr 30 2026, instalación oficial desde el `open-watcom-v2-c-dos.exe`):
+
+```
+$ wcc386 -bt=dos -3 -mf -O2 -za99 -w3 -wcd=202 -wcd=102 -dWALKMAP_CELL_SIZE=8 timer.c
+timer.c: 115 lines, included 905, 0 warnings, 1 errors
+```
+
+`1 errors` sin mensaje. El compilador no escribe el `.obj`. Bisección de
+flags confirma que el culpable es `-O2`:
+
+| Flags                                 | Resultado |
+|---------------------------------------|-----------|
+| `-bt=dos -3 -mf -O2 -za99`            | 1 error, no .obj |
+| `-bt=dos -3 -mf -ox -za99`            | 0 errors, .obj OK |
+| `-bt=dos -6r -ox -w=3` (README)       | 0 errors, .obj OK |
+
+`-O2` no figura en la documentación oficial de Open Watcom v2. El flag
+correcto Watcom-style es `-ox` (full optimization).
+
+### Impacto
+
+El build release está silenciosamente roto en cualquier instalación de
+Open Watcom v2 que no acepte `-O2` (todas las que he probado). El build
+debug (`-d2` en lugar de `-O2`) sí funciona.
+
+### Fix
+
+```diff
+-    : `-3 -mf -O2 -za99 -w3 -wcd202 -wcd102 ${cellDefine}`
++    : `-3 -mf -ox -za99 -w3 -wcd202 -wcd102 ${cellDefine}`
+```
+
+Una línea. Commit propuesto: `fix(build): -O2 -> -ox in release flags`.
+
+### Para ti, ahora mismo
+
+Aplica el cambio cuando lo veas — es trivial y desbloquea el build
+release. Si tu workflow normal es siempre debug, esto puede haber estado
+roto sin que nadie lo notara.
+
+---
+
+## F-02 — Falso positivo (descartado tras verificación en Terminal nativa)
+
+**Severidad:** ninguna · **Estado:** ❌ descartado · **Fix:** no aplica
+
+### Honestidad primero: yo (Claude) me equivoqué
+
+Reporté inicialmente que `npm run dev` rompía con
+`TypeError: Cannot read properties of undefined (reading 'whenReady')`
+y propuse pinear `engines.node` como fix. Lo documenté como bug del
+proyecto y lo metí en este mismo PR.
+
+**Estaba mal**. Marcos verificó en su Terminal nativa de macOS y
+**el editor arranca sin problema, la app de Electron abre y se usa
+con normalidad**. El bug que yo veía es un falso positivo del entorno
+donde corro como Claude Code, no del repo.
+
+### Explicación técnica
+
+Cuando ejecuto `npm run dev` desde mi tool Bash, este lanza el comando
+en un sub-shell (`sh -c` / `zsh -c` no interactivo) que el sandbox de
+Claude Code envuelve para capturar stdout/stderr y aplicar permisos.
+`electron-vite` invoca a su vez el binario `electron` como sub-proceso,
+y dentro de ese proceso Electron carga `out/main/index.js`.
+
+Algo en esa cadena de wrapping (probablemente cómo el sandbox
+intercepta stdio o el environment de variables) hace que el módulo
+nativo `electron` no se inyecte correctamente en el contexto del
+script main. El bundle resuelve `require('electron')` a algo
+incompleto (`electron.app` queda `undefined`) y al ejecutar
+`electron.app.whenReady()` se cae.
+
+En tu Terminal nativa de macOS, el binario `electron` se invoca
+directamente sin esa capa de wrapping y el módulo se inyecta
+correctamente. Por eso el editor arranca como debe.
+
+Es el mismo error que dispararía cualquier sandbox que intercepta
+stdio o reescriba `argv0` (Docker mal configurado, Snap, ciertos
+launchers). Pero **no es bug del proyecto** — es del entorno desde el
+que yo lanzo el comando.
+
+### Lo que dejamos en el PR a pesar de ser falso positivo
+
+`engines.node: ">=22.0.0"` se queda en `package.json`, pero la
+justificación cambia:
+
+- ❌ NO es fix de F-02 (no había bug que arreglar).
+- ✅ SÍ es saneamiento: Node 20 LTS terminó en abril 2026 (ya en
+  mantenimiento, EOL septiembre 2026); Node 22 es LTS activa hasta
+  abril 2027. Pin a `>=22.0.0` ayuda a contributors a saber qué
+  versiones se prueban en CI sin bloquear futuras LTS (24 cuando
+  llegue).
+
+### Lección
+
+La conclusión de "Electron 33 incompat con Node ≥ 23" la generé sin
+verificar fuera del sandbox. Carmack-style, debí probarlo en al
+menos dos entornos (Terminal nativa + sandbox) antes de declarar
+diagnóstico.
+
+Para futuros bugs reportados por mí: **si solo lo veo desde la tool
+Bash, no es un bug confirmado**. Hay que verificar en Terminal
+nativa o CI antes de incluirlo en findings.
+
+### Para ti, ahora mismo
+
+Nada que hacer. El editor te arranca. Si te interesa, mantienes el
+pin Node como saneamiento; si te molesta, lo quitas y no pasa nada.
+
+---
+
+## F-03 — `documentation/` y `mcp-servers/` en `.gitignore` pero referenciados
+
+**Severidad:** Media · **Estado:** abierto · **Fix incluido:** No (requiere decisión)
+
+### Resumen en cristiano
+
+Tienes carpetas `documentation/` y `mcp-servers/` que `CLAUDE.md` y
+`.instructions.md` mencionan como referencia importante para entender
+el motor, el audio, el formato DAT, etc. Pero esas dos carpetas están
+en `.gitignore`, así que sólo existen en tu disco local. Para ti
+funcionan; para cualquier otra persona (yo en esta sesión, otra máquina
+tuya, un futuro contributor) son rutas rotas.
+
+No es necesariamente un bug — quizá esas carpetas son notas locales
+tuyas que no quieres publicar. Pero entonces conviene quitar las
+referencias del `CLAUDE.md` para no confundir.
+
+### Reproducción
+
+`.gitignore` líneas 6-7:
+```
+mcp-servers/
+documentation/
+```
+
+`CLAUDE.md` y `.instructions.md` los mencionan extensamente:
+- `documentation/FETCH-SYSTEM.md`
+- `documentation/CONTEXT7-AGEMKI.md`
+- `documentation/AUDIO-GUIDE.md`
+- `documentation/legacy/agemki-doc-v32.txt`
+- `documentation/legacy/open-watcom-guide.pdf`
+- `mcp-servers/watcom-context/`
+
+### Impacto
+
+Cualquier contributor (incluyendo un LLM en otra máquina) no ve estos
+recursos. Las referencias quedan rotas. Si el contenido es relevante,
+falta colaboración. Si no, son referencias obsoletas en `CLAUDE.md`.
+
+`src/main/dat/AGEMKI_DAT_SPEC.md` SÍ está commiteado y bien — ese OK.
+
+### Decisión necesaria
+
+Una de:
+
+- **(a)** Commitear `documentation/` (y `mcp-servers/` si tiene utilidad
+  pública). Quitar las dos líneas del `.gitignore`. Probable opción
+  correcta si son docs reales del proyecto.
+- **(b)** Quitar las referencias del `CLAUDE.md` / `.instructions.md`. Si
+  son notas locales de tu workflow, no del proyecto.
+- **(c)** Mover documentos relevantes a una ubicación commiteada (por
+  ejemplo `docs/` lowercase, no en `.gitignore`) y dejar `documentation/`
+  como dir local de borradores.
+
+### Para ti, ahora mismo
+
+Es la única decisión real que requiere tu criterio. Si `documentation/`
+son docs del proyecto que quieres compartir, opción (a). Si son notas
+tuyas, opción (b). Si una mezcla, opción (c). Cuando lo decidas, son
+~5 minutos de trabajo.
+
+---
+
+## F-04 — `serializeScript` size-calc / writer mismatch (buffer overflow)
+
+**Severidad:** Alta · **Estado:** ✅ aplicado · **Fix incluido:** Sí (commit `fix(dat,build)`)
+
+### Resumen en cristiano
+
+Dentro de `serializeScript`, el código que **calcula** cuánto buffer
+hace falta y el código que **escribe** los bytes leen el JSON usando
+nombres de campos distintos. El que calcula busca `param1/2/3` (en
+condiciones) y `p1/p2/p3/p4` (en instrucciones); el que escribe busca
+`flag/value/attr` y los `Object.entries(i)`. Si los nombres reales del
+JSON no coinciden con lo que espera el calculador, el buffer queda más
+pequeño de lo necesario y al escribir explota con `RangeError`.
+
+Probable que en tu uso normal del editor las claves caigan en un
+patrón que evita el problema (todas vacías, o el editor las normaliza
+a `p1`-`p4` antes de serializar). En cuanto pongas un `text` o un
+`flag` no vacío en una instrucción, el codegen puede romper.
+
+### Reproducción
+
+[`src/main/datGenerator.js:633-704`](../src/main/datGenerator.js#L633-L704).
+En `triggers[].conditions[]` y `triggers[].instructions[]` la pre-calc de
+tamaño y la escritura usan claves distintas:
+
+#### Conditions
+
+Size-calc lee:
+```js
+size += 1 + sizeStr8(c.param1 || '') + sizeStr8(c.param2 || '') + sizeStr8(c.param3 || '') + 1
+```
+
+Writer hace:
+```js
+off = writeStr8(buf, off, c.flag || c.objectId || c.target || c.varName || '')
+off = writeStr8(buf, off, c.value != null ? String(c.value) : '')
+off = writeStr8(buf, off, c.attr || '')
+```
+
+Si la condición en JSON usa `flag`/`value`/`attr` (no `param1/2/3`),
+size = 4 bytes (3 strings vacíos + 2 uint8), writer escribe N bytes →
+`Buffer.alloc(N)` overflow.
+
+#### Instructions
+
+Size-calc lee:
+```js
+size += 1 + sizeStr8(i.p1||'') + sizeStr8(i.p2||'') + sizeStr8(i.p3||'') + sizeStr8(i.p4||'')
+```
+
+Writer hace:
+```js
+const fields = Object.entries(i).filter(([k]) => k !== 'type')
+off = writeStr8(buf, off, fields[0]?.[1] != null ? String(fields[0][1]) : '')
+// ... fields[1..3]
+```
+
+Si la instrucción en JSON usa `text` o `flag` (no `p1`/`p2`/...), size =
+4 bytes, writer escribe el valor real → overflow.
+
+### Repro empírica
+
+Con la primera versión del fixture `tests/fixtures/minimal/`:
+```
+RangeError: The value of "offset" is out of range. It must be >= 0 and <= 65. Received 67
+ ❯ writeStr8 src/main/datGenerator.js:161:7
+ ❯ serializeScript src/main/datGenerator.js:698:13
+ ❯ Module.generateDats src/main/datGenerator.js:938:65
+```
+
+### Impacto
+
+Cualquier script con instrucciones que contengan strings reales rompe
+`generateDats`. El comportamiento que tienes hoy depende de cómo el
+editor genere los JSONs de scripts (no pude inspeccionar esa parte
+porque `documentation/` está en `.gitignore`, ver F-03). Si los IDs son
+`p1`-`p4`, todo OK; si son `text`/`flag`/`value`, el `Buffer.alloc()`
+lanza `RangeError` y aborta el build.
+
+### Fix sugerido
+
+Tres opciones (cualquiera vale; la más limpia es la (c)):
+
+**(a)** Size-calc lee `Object.entries`:
+```js
+const condFields = Object.entries(c).filter(([k]) => k !== 'type' && k !== 'operator')
+size += 1
+for (const [, v] of condFields) size += sizeStr8(String(v ?? ''))
+size += 1  // operator
+```
+
+**(b)** Writer lee `c.param1/2/3`:
+```js
+off = writeStr8(buf, off, String(c.param1 ?? ''))
+off = writeStr8(buf, off, String(c.param2 ?? ''))
+off = writeStr8(buf, off, String(c.param3 ?? ''))
+```
+
+**(c)** Unificar el contrato: el editor escribe `param1`/`param2`/... en
+los stores. Migración pequeña en `scriptStore.js` + un script de
+upgrade del JSON existente. Más limpio a medio plazo, pero invasivo.
+
+### Mitigación temporal en tests
+
+`tests/fixtures/minimal/scripts/scr_use_key.json` usa `conditions: []` e
+`instructions: []`. La firma del trigger se serializa, pero los caminos
+buggy no se ejercitan. Una vez fixeado el bug, el fixture `midgame`
+(Phase 1.5) cubrirá el camino completo y los goldens se regenerarán.
+
+Commit propuesto: `fix(dat): align serializeScript size-calc with writer`.
+
+### Para ti, ahora mismo
+
+Lo primero: comprueba qué claves usa **tu** editor en el JSON real
+(abre un `scripts/scr_*.json` cualquiera). Si ves `p1/p2/p3/p4`, no te
+está afectando ahora pero sigue siendo deuda latente. Si ves
+`text`/`flag`/`value` y aún así te funciona, mira si los strings son
+todos vacíos. En cualquier caso, fix recomendado por opción (a) o (c)
+para cerrar el camino.
+
+---
+
+## F-05 — `buildDat` no ordena chunks (binary search del motor falla)
+
+**Severidad:** Crítica · **Estado:** ✅ aplicado · **Fix incluido:** Sí (commit `fix(dat,build)`)
+
+### Resumen en cristiano
+
+La spec del formato `.DAT` (que tú mismo escribiste, ver
+`AGEMKI_DAT_SPEC.md`) dice claramente que la chunk table tiene que ir
+ordenada por `(type, id_crc32)` para que el motor C pueda hacer
+binary search en O(log N). Pero la función `buildDat` escribe los
+chunks tal y como le llegan, sin sortear. Resultado: a veces salen
+ordenados por casualidad (porque `readdirSync` en macOS devuelve
+nombres alfabéticos y los res_types coinciden con el orden alfabético
+del fichero), a veces no — y depende del filesystem y del contenido
+del juego.
+
+### Por qué probablemente no lo has notado
+
+En tu Mac con tu game.json actual, los res_types caen casi-ordenados
+por accidente: GRAPHICS.DAT, AUDIO.DAT y FONTS.DAT salen ordenados
+porque su contenido es homogéneo o monótono creciente. Solo SCRIPTS.DAT
+desordena: `game_params` (0x18) cae en posición 0 porque se inserta
+primero en el código, antes de los locales (0x17). La binary search
+del motor para los locales puede fallar dependiendo de cuántos chunks
+haya. Si tu juego es pequeño o linealmente creciente, puede que la
+búsqueda dé por casualidad con el chunk correcto en el primer salto.
+Con un juego más grande o estructurado distinto, el motor empezará a
+"perder" chunks de forma intermitente.
+
+### Reproducción
+
+[`src/main/datGenerator.js:206-249`](../src/main/datGenerator.js#L206-L249).
+La función `buildDat` escribe los chunks en el orden de inserción, sin
+sortear:
+
+```js
+function buildDat(datType, blocks) {
+  // ...
+  for (const block of blocks) {
+    // index entry escrito en orden de blocks[]
+    // data block copiado en orden de blocks[]
+  }
+  return buf
+}
+```
+
+Pero la spec ([`src/main/dat/AGEMKI_DAT_SPEC.md`](../src/main/dat/AGEMKI_DAT_SPEC.md))
+y el comentario en `agemki_engine.h` requieren orden lex por
+`(type, id_crc32)` para que el motor C pueda hacer binary search.
+
+#### Verificación con fixture minimal
+
+Decodificando `goldens/dat/minimal/SCRIPTS.DAT`:
+
+```
+[0] resType=0x18 id="game_params"     ← debería estar al final
+[1] resType=0x10 id="room_001"
+[2] resType=0x11 id="obj_key"
+[3] resType=0x12 id="char_hero"
+[4] resType=0x13 id="vs_default"
+[5] resType=0x14 id="dlg_intro"
+[6] resType=0x15 id="scr_use_key"
+[7] resType=0x16 id="seq_intro"
+[8] resType=0x17 id="locale_en"
+[9] resType=0x17 id="locale_es"
+```
+
+`game_params` (0x18) está antes que `locale_*` (0x17). Para una
+búsqueda binaria por res_type=0x17, el motor mira el índice medio (~0x14),
+decide ir a la mitad superior, encuentra `game_params` (0x18) o cualquier
+otra cosa, no localiza los locales correctamente.
+
+GRAPHICS.DAT, AUDIO.DAT y FONTS.DAT están ordenados **por accidente** en
+el fixture minimal (el `readdirSync` los devuelve ya ordenados, y los
+res_types coinciden con el orden alfabético). Cualquier configuración
+diferente puede romperlos también.
+
+### Impacto
+
+**Crítico.** En runtime, el motor falla a localizar chunks específicos
+del SCRIPTS.DAT. Síntoma probable: rooms / objetos / diálogos / scripts
+que el editor sí define pero el motor no carga, dependiendo del orden
+filesystem `readdirSync`. Comportamiento no-determinista entre máquinas.
+
+### Fix
+
+Una línea antes del bucle de escritura en `buildDat`:
+
+```diff
+ function buildDat(datType, blocks) {
+   const numBlocks  = blocks.length
++
++  // Spec AGEMKI_DAT_SPEC.md: ordenar lex por (type, id) para binary search.
++  blocks = [...blocks].sort((a, b) =>
++    a.resType !== b.resType
++      ? a.resType - b.resType
++      : String(a.id).localeCompare(String(b.id))
++  )
++
+   const indexSize  = numBlocks * INDEX_ENTRY_SIZE
+   const dataOffset = HEADER_SIZE + indexSize
+```
+
+Este fix cambia los bytes generados → goldens existentes se invalidan
+intencionalmente. El test `chunks ordered lexicographically` pasará para
+todos los DAT después del fix; está marcado con `it.fails` para SCRIPTS.DAT
+en este momento, lo que forzará un fallo cuando el bug se arregle (porque
+la falla esperada deja de ocurrir) y obligará a quitar el marker.
+Self-resetting.
+
+### Riesgo del fix
+
+Si en algún sitio del motor C asumes orden de inserción (en lugar de
+binary search), el fix podría descubrir bugs latentes ahí también.
+Mitigación: cuando apliques el fix, abre `agemki_engine.c` y busca los
+sitios que iteran chunks. Confirma que usan binary search o son
+agnósticos al orden. Si encuentras alguno que asume orden, ese se
+arregla con el mismo PR.
+
+Commit propuesto: `fix(dat): sort chunks before writing index`.
+
+### Para ti, ahora mismo
+
+Este es **el más importante** de los cinco. El fix es de 3 líneas. La
+única razón para no aplicarlo inmediatamente es si quieres aprovechar
+para revisar el motor primero (ver "Riesgo del fix"). Mi recomendación:
+aplica el fix de `buildDat`, regenera goldens, ejecuta el juego una
+vez en DOSBox-X, y si todo funciona ya estás cubierto.
+
+---
+
+## F-06 — `engine_walkmap_add_poly` aproxima polígonos a su bounding box
+
+**Severidad:** Media · **Estado:** abierto · **Fix incluido:** No (requiere tu decisión)
+
+### Resumen en cristiano
+
+Tu editor permite definir walkmaps con polígonos arbitrarios (convexos,
+cóncavos, triángulos, formas raras). Pero el motor C, al cargarlos,
+los reduce a su **bounding box rectangular**. El polígono visualmente
+verde en el editor puede tener mucha más área transitable que la zona
+real donde el personaje puede caminar en runtime.
+
+Esto no es bug del motor en sí — es una decisión documentada con el
+comentario `/* Aproximacion: bounding box del poligono como rect
+navegable */` en `agemki_engine.c:2179`. Pero **el editor no avisa al
+artista** de esa simplificación, así que un polígono concavo definido
+con cuidado (ej: un pasillo en L) acaba siendo un rect que cubre las
+dos paredes.
+
+### Reproducción
+
+[`resources/engine/agemki_engine.c:2178-2200`](../resources/engine/agemki_engine.c#L2178):
+
+```c
+void engine_walkmap_add_poly(int* pts, int n) {
+    /* Aproximacion: bounding box del poligono como rect navegable */
+    s16 mx, my, xx, xy; int i;
+    // ... computa min/max de los puntos
+    // ... rellena el rect resultante en g_walkmap (bitmap)
+}
+```
+
+El motor NO tiene una función `point_in_polygon` real. Todo el sistema
+de pasability funciona sobre `g_walkmap[gy * g_wm_w + gx]` (bitmap por
+celda). Los polígonos solo aportan su área enclosing.
+
+### Impacto
+
+Para walkmaps **rectangulares** (mayoría de rooms): cero impacto.
+Para walkmaps **con polígonos** (concavos, triangulares):
+
+- Áreas no transitables que el artista pretendía bloquear quedan
+  abiertas en runtime.
+- El personaje puede caminar por sitios "fuera" del polígono pero
+  dentro del bounding box.
+- El editor no muestra esto: la previsualización del walkmap usa la
+  forma real del polígono, no el bb.
+
+### Tres opciones
+
+**(a)** Documentar la limitación. Avisar en el editor cuando se dibuja
+un polígono no-rectangular: "el motor lo tratará como su bounding box.
+Para áreas precisas, usa rectángulos o un walkmap bitmap directo".
+Cambio mínimo, decisión más conservadora.
+
+**(b)** Implementar point-in-polygon real en el motor. La función
+clásica (ray casting) son ~15 líneas de C, sin ninguna dep HW. Una vez
+implementada, `engine_walkmap_add_poly` rasteriza el polígono real
+sobre la bitmap en lugar de usar el bounding box. Mantienes la
+representación bitmap (rápida) pero con datos correctos.
+
+**(c)** Migrar el walkmap de bitmap a representación vectorial
+(polígonos como first-class). Esto es invasivo, cambia mucho del
+motor (path-finding incluido), pero es lo más fiel a tu modelo del
+editor. Probable que no compense.
+
+### Para ti, ahora mismo
+
+Pregunta clave: **¿usas polígonos no-rectangulares en walkmaps reales?**
+
+- Si **no** (todo son rects): cero urgencia. Quizás opción (a) algún día
+  para avisar a futuros usuarios del editor.
+- Si **sí**: bug latente real. (b) es razonable, ~30 minutos de trabajo,
+  potencialmente otro fix bit-identico desde el editor JS.
+
+Lo descubrí montando los tests del motor en host (Sub-etapa 2.2 buscaba
+exponer `point_in_polygon` para testear y resulta que no existía).
+Documentado aquí para que decidas. Cuando quieras te monto opción (b)
+con tests bit-exact JS↔C.
+
+### Mitigación temporal en tests
+
+Ninguna. Sub-etapa 2.2 entrega solo PCX decode (ya completo y verde).
+La parte de "geometría 2D" del plan original asumía funciones que no
+existen en el motor. Sub 2.3 (A* pathfinding) adelanta y testea la
+helpers que sí existen (`_walk_passable`, `_heuristic`).
+
+---
+
+## F-07 — `.gitignore` con comentario inline en patrón `*.dSYM/`
+
+**Severidad:** Baja · **Estado:** ✅ aplicado · **Fix incluido:** Sí (en este PR)
+
+### Resumen en cristiano
+
+Al añadir reglas para los artefactos de debug del runner host (clang en
+mac genera `runner.dSYM/`, MSVC en Windows genera `.pdb` y `.ilk`),
+puse el comentario explicativo **en la misma línea** que el patrón:
+
+```gitignore
+tests/engine_host/*.dSYM/      # debug symbols dir generado por clang en mac
+```
+
+Eso **no es válido en `.gitignore`**. A diferencia de muchos otros
+formatos, gitignore no soporta comentarios inline: el `#` solo
+funciona si está al inicio de la línea. La regla queda como un patrón
+literal `tests/engine_host/*.dSYM/      # debug symbols dir generado por clang en mac`,
+que jamás va a coincidir con nada. Resultado: `runner.dSYM/` se cuela
+en `git status` cada vez que clang genera símbolos, contaminando el
+working tree de cualquier contributor en mac.
+
+### Reproducción
+
+```bash
+node tests/engine_host/build.mjs --force
+git status --short      # tests/engine_host/runner.dSYM/ aparece como untracked
+git check-ignore -v tests/engine_host/runner.dSYM/   # NO IGNORED
+```
+
+### Impacto
+
+Cosmético, pero molesto:
+
+- `git status` siempre con ruido.
+- Riesgo de hacer `git add .` y commitear símbolos de debug por error
+  (un `runner.dSYM/` típico ocupa varios MB).
+- Cualquier hook que dependa de "working tree limpio" se confunde.
+
+### Fix
+
+Cada comentario en su propia línea:
+
+```gitignore
+# debug symbols dir generado por clang en mac
+tests/engine_host/*.dSYM/
+# debug symbols Windows
+tests/engine_host/*.pdb
+# incremental linker artifacts Windows
+tests/engine_host/*.ilk
+```
+
+Aplicado en commit `fix(.gitignore): los comentarios inline no son válidos`.
+
+### Lección para Claude (yo)
+
+Lo introduje yo en una sesión anterior por escribir reglas + comentarios
+de un golpe sin probar. **Verificar siempre con
+`git check-ignore -v <ruta>`** después de añadir reglas — es la única
+forma de saber si la regla aplica de verdad.
+
+### Para ti, ahora mismo
+
+Nada. Ya está arreglado en este PR.
+
+---
+
+## Plan de commits sugerido
+
+Estos hallazgos sugieren cuatro commits separables. El orden recomendado:
+
+1. **`fix(build): -O2 -> -ox in release flags`** (F-01) — 1 línea, urgente.
+2. **`fix(dat): sort chunks before writing index`** (F-05) — 3 líneas, runtime crítico.
+3. **`fix(dat): align serializeScript size-calc with writer`** (F-04) — ~10 líneas.
+4. **`chore: pin node engine to LTS`** (saneamiento, ya aplicado en este PR; **NO** es fix de F-02 — F-02 era falso positivo).
+5. **`feat: test suite + golden files + TDD harness`** — el resto del trabajo.
+
+Como trabajas solo en `main` sin PRs, puedes:
+
+- Aplicarlos como **5 commits separados** sobre `main` (más legible en
+  `git log`, fácil de revertir uno solo si rompe algo).
+- O **squash todo en un commit grande** si prefieres un solo punto de cambio.
+
+Los fixes 1-4 son cortos y pueden aplicarse en cualquier orden. El 5 es
+todo el trabajo de la suite y no toca tu código de producción.
+
+---
+
+## Cómo se han descubierto
+
+Todos los findings han salido de **intentar compilar y testear el código
+realmente**, sin asumir que la documentación o el README están al día.
+Cada vez que algo no encajaba, bisección + lectura del código.
+
+- F-01 detectado al compilar el motor en DOSBox-X con flags del README
+  (que no incluye `-O2`) vs flags del `index.js` (que sí lo incluye).
+- F-02 detectado al ejecutar `npm run dev` después de un `npm install`
+  fresco.
+- F-03 detectado al revisar `.gitignore` contra `CLAUDE.md`.
+- F-04 detectado al construir el primer fixture realista y ejecutar
+  `generateDats()` desde un test.
+- F-05 detectado por un assertion `indexIsSorted` en el test de estructura
+  semántica (chunks deben venir ordenados — del comentario en la spec).
+- F-07 detectado al ver `runner.dSYM/` en `git status` después de
+  compilar el runner; `git check-ignore -v` confirmó que el patrón
+  con comentario inline no se aplicaba.
+
+Filosofía: **goldens no como ritual, sino como red real de seguridad**.
+
+Ninguno de estos bugs te impide trabajar — los descubrimos justo porque
+al montar la red de seguridad había que ejercitar caminos que tú
+normalmente no ejecutas (build release sin pasar por el editor, fixture
+nuevo con todas las claves, decoder que valida el orden de chunks
+contra la spec). Esa es la idea: que la próxima regresión que
+introduzcas sin querer se vea **aquí**, en una máquina cualquiera, en
+segundos. No tres horas después en DOSBox cuando el motor no encuentra
+un chunk y vuelve fondo negro sin mensaje de error.
+
+Si solo te llevas una cosa de este documento: **F-05 (orden de chunks)
+es el que más te conviene aplicar pronto**. Los demás son saneamiento.
