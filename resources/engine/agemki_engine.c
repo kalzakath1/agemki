@@ -5422,21 +5422,27 @@ void engine_say(const char* char_id, const char* text_key) {
     _protagonist_talk_start(duration_ms);
     /* Mostrar overlay con centrado por linea sobre el personaje */
     _overlay_add_say(txt, 15, char_sx, oy, g_ticks_ms + duration_ms);
-    /* Bucle bloqueante: esperar click o fin de duracion */
+    /* Bucle bloqueante: esperar click o fin de duracion.
+     * _click_ok_ms: gracia de 150ms al inicio para que el click del objeto no se cuele. */
+    { u32 _click_ok_ms = g_ticks_ms + 150;
     g_overlay_click_seen = 0;
     until = g_ticks_ms + duration_ms;
     while (g_running && g_ticks_ms < until) {
         engine_flip();
         if (!engine_process_input()) break;
-        if (g_overlay_click_seen) { _clicked = 1; break; }
+        if (g_overlay_click_seen) {
+            if (g_ticks_ms >= _click_ok_ms) { _clicked = 1; break; }
+            g_overlay_click_seen = 0; /* click prematuro: descartar */
+        }
+    }
     }
     _overlay_clear_all();
     g_overlay_click_seen = 0;
-    /* Si el usuario hizo click para saltar (no timeout), propagar a líneas extra del mismo handler */
-    if (_clicked) g_say_skip = 1;
+    /* Esperar a que suelte el boton: evita que el mismo click avance tambien la siguiente linea */
+    if (_clicked) { do { _mouse_poll(); } while (g_mouse.buttons); }
     /* Forzar restauracion de idle inmediatamente */
     g_in_say--;
-    DBG("engine_say: done clicked=%d skip_now=%d in_say=%d\n", _clicked, (int)g_say_skip, (int)g_in_say);
+    DBG("engine_say: done clicked=%d in_say=%d\n", _clicked, (int)g_in_say);
     g_talk_restore_ms = g_ticks_ms;
     _talk_restore_check();
 }
@@ -5486,16 +5492,21 @@ void engine_say_anim(const char* char_id, const char* text_key, const char* anim
     g_talk_restore_ms = g_ticks_ms + duration_ms;
     g_talk_idle_role  = restore_role;
     _overlay_add_say(txt, 15, char_sx, oy, g_ticks_ms + duration_ms);
+    { u32 _click_ok_ms = g_ticks_ms + 150;
     g_overlay_click_seen = 0;
     until = g_ticks_ms + duration_ms;
     while (g_running && g_ticks_ms < until) {
         engine_flip();
         if (!engine_process_input()) break;
-        if (g_overlay_click_seen) { _clicked = 1; break; }
+        if (g_overlay_click_seen) {
+            if (g_ticks_ms >= _click_ok_ms) { _clicked = 1; break; }
+            g_overlay_click_seen = 0;
+        }
+    }
     }
     _overlay_clear_all();
     g_overlay_click_seen = 0;
-    if (_clicked) g_say_skip = 1;
+    if (_clicked) { do { _mouse_poll(); } while (g_mouse.buttons); }
     g_talk_restore_ms = g_ticks_ms;
     _talk_restore_check();
 }

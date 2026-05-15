@@ -13,6 +13,7 @@ build/
 *.obj
 *.map
 *.dat
+*.zip
 game_config.h
 
 # Logs de compilación
