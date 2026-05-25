@@ -287,6 +287,7 @@ void engine_char_set_light(const char* char_id,
  * Si el script lo cambió en visitas anteriores, ese estado tiene prioridad. */
 void engine_register_exit(const char* id, s16 x, s16 y, s16 w, s16 h,
                           const char* target_room, const char* target_entry,
+                          const char* entry_dir,
                           const char* name_key, u8 initial_enabled);
 /* Activa (1) o desactiva (0) un exit. Un exit desactivado no es clickable ni transitable. */
 void engine_set_exit_enabled(const char* exit_id, u8 enabled);

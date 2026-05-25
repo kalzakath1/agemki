@@ -59,6 +59,7 @@ import { useDialogueStore } from '../../store/dialogueStore'
 import { useAttributeStore } from '../../store/attributeStore'
 import './SequenceEditor.css'
 import PalettePicker, { DEFAULT_VGA_PALETTE, palIdx2css } from '../shared/PalettePicker'
+import FlagPicker from '../shared/FlagPicker'
 
 // ── Shared game data cache (survives remounts within session) ─────────────────
 const _cache = { gameDir: null, rooms: [], audios: [], scripts: [], sequences: [], backgrounds: [], objects: [] }
@@ -593,6 +594,9 @@ function FieldPicker({ fd, value, onChange, data, step = {}, gameDir = '', seqId
           <option value="quit">Salir del juego</option>
         </select>
       )
+
+    case 'flag':
+      return <FlagPicker value={value||''} onChange={onChange} placeholder={ph||'— flag —'} />
 
     default:
       return <input type="text" value={value||''} placeholder={ph||k} onChange={e => onChange(e.target.value)} />

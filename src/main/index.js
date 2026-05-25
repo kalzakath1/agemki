@@ -142,6 +142,28 @@ ipcMain.handle('game:save', async (_event, { gameDir, game }) => {
   }
 })
 
+// Leer flags.json
+ipcMain.handle('flags:read', async (_event, { gameDir }) => {
+  try {
+    const p = join(gameDir, 'flags.json')
+    if (!existsSync(p)) return { ok: true, flags: [] }
+    const { flags } = JSON.parse(readFileSync(p, 'utf8'))
+    return { ok: true, flags: Array.isArray(flags) ? flags : [] }
+  } catch (err) {
+    return { ok: false, error: err.message }
+  }
+})
+
+// Guardar flags.json
+ipcMain.handle('flags:save', async (_event, { gameDir, flags }) => {
+  try {
+    writeFileSync(join(gameDir, 'flags.json'), JSON.stringify({ flags }, null, 2), 'utf8')
+    return { ok: true }
+  } catch (err) {
+    return { ok: false, error: err.message }
+  }
+})
+
 // Renombrar juego (solo cambia el campo name en game.json)
 ipcMain.handle('game:rename', async (_event, { gameDir, name }) => {
   try {
@@ -1691,7 +1713,7 @@ OBJS = main.obj agemki_engine.obj agemki_audio.obj mididrv.obj opl2.obj opl3.obj
 \t$(CC) $(CFLAGS) -fo=$@ $<
 
 GAME.EXE: $(OBJS)
-\t$(LD) system dos4g name GAME.EXE file main.obj,agemki_engine.obj,agemki_audio.obj,mididrv.obj,opl2.obj,opl3.obj,opl_patches.obj,mpu.obj,midi.obj,timer.obj,sb.obj libpath $(WATCOM_LIB) lib ${clibName}
+\t$(LD) system dos4gw name GAME.EXE file main.obj,agemki_engine.obj,agemki_audio.obj,mididrv.obj,opl2.obj,opl3.obj,opl_patches.obj,mpu.obj,midi.obj,timer.obj,sb.obj libpath $(WATCOM_LIB) lib ${clibName}
 
 main.obj: main.c agemki_engine.h agemki_dat.h agemki_audio.h
 \t$(CC) $(CFLAGS) -fo=main.obj main.c
@@ -3666,7 +3688,7 @@ async function generateMainC(gameDir, audioDriver) {
       for (const ex of room.exits) {
         const tz = ex.triggerZone || {}
         const exitNameKey = `exit.${cId(ex.id)}.name`
-        e(`    engine_register_exit("${cStr(ex.id)}", ${tz.x|0}, ${tz.y|0}, ${tz.w|0}, ${tz.h|0}, "${cStr(ex.targetRoom)}", "${cStr(ex.targetEntry||'entry_default')}", "${exitNameKey}", ${ex.blocked ? 0 : 1});`)
+        e(`    engine_register_exit("${cStr(ex.id)}", ${tz.x|0}, ${tz.y|0}, ${tz.w|0}, ${tz.h|0}, "${cStr(ex.targetRoom)}", "${cStr(ex.targetEntry||'entry_default')}", "${cStr(ex.entryDir||'')}", "${exitNameKey}", ${ex.blocked ? 0 : 1});`)
       }
     }
 

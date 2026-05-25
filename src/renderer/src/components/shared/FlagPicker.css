@@ -1,0 +1,108 @@
+/* ── FlagPicker ─────────────────────────────────────────────────────────────── */
+.flag-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+}
+
+.flag-picker__select {
+  width: 100%;
+  min-width: 180px;
+  padding: 5px 8px;
+  background: var(--surface-1, #1e1e2e);
+  border: 1px solid var(--border, #3f3f5a);
+  border-radius: 4px;
+  color: var(--text-primary, #cdd6f4);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.flag-picker__select:focus {
+  outline: none;
+  border-color: var(--accent, #6366f1);
+}
+
+.flag-picker__desc {
+  font-size: 10px;
+  color: var(--text-muted, #6c7086);
+  line-height: 1.4;
+  padding: 0 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Formulario de creación inline ──────────────────────────────────────────── */
+.flag-picker--creating {
+  background: var(--surface-2, #181825);
+  border: 1px solid var(--accent, #6366f1);
+  border-radius: 6px;
+  padding: 10px;
+  gap: 6px;
+}
+
+.flag-picker__form-row {
+  display: flex;
+  gap: 6px;
+}
+
+.flag-picker__form-name {
+  flex: 1;
+  padding: 5px 8px;
+  background: var(--surface-1, #1e1e2e);
+  border: 1px solid var(--border, #3f3f5a);
+  border-radius: 4px;
+  color: var(--text-primary, #cdd6f4);
+  font-size: 12px;
+}
+
+.flag-picker__form-name:focus {
+  outline: none;
+  border-color: var(--accent, #6366f1);
+}
+
+.flag-picker__form-desc {
+  width: 100%;
+  padding: 5px 8px;
+  background: var(--surface-1, #1e1e2e);
+  border: 1px solid var(--border, #3f3f5a);
+  border-radius: 4px;
+  color: var(--text-primary, #cdd6f4);
+  font-size: 11px;
+  resize: vertical;
+  min-height: 42px;
+  font-family: inherit;
+}
+
+.flag-picker__form-desc:focus {
+  outline: none;
+  border-color: var(--accent, #6366f1);
+}
+
+.flag-picker__form-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.flag-picker__form-ok {
+  font-size: 11px;
+  padding: 4px 12px;
+}
+
+.flag-picker__form-cancel {
+  font-size: 11px;
+  padding: 4px 10px;
+  background: transparent;
+  border: 1px solid var(--border, #3f3f5a);
+  border-radius: 4px;
+  color: var(--text-muted, #6c7086);
+  cursor: pointer;
+  transition: border-color 0.12s, color 0.12s;
+}
+
+.flag-picker__form-cancel:hover {
+  border-color: var(--text-muted, #6c7086);
+  color: var(--text-primary, #cdd6f4);
+}

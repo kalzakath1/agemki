@@ -40,7 +40,7 @@ export const useAttributeStore = create((set, get) => ({
   dirty: false,
 
   load: async (gameDir) => {
-    const result = await window.api.loadGame(gameDir)
+    const result = await window.api.readGame(gameDir)
     if (!result.ok) return
     const game = result.game
     set({
@@ -64,7 +64,7 @@ export const useAttributeStore = create((set, get) => ({
 
   save: async (gameDir) => {
     const { enabled, attributes } = get()
-    const result = await window.api.loadGame(gameDir)
+    const result = await window.api.readGame(gameDir)
     if (!result.ok) return
     const game = result.game
     game.systems = { ...(game.systems || {}), rpgAttributes: enabled }

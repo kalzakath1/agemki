@@ -48,6 +48,8 @@ import { useScriptStore, TRIGGERS, INSTR, INSTR_CATS, COND_TYPES } from '../../s
 import { useCharStore } from '../../store/charStore'
 import { useLocaleStore } from '../../store/localeStore'
 import { useDialogueStore } from '../../store/dialogueStore'
+import { useAttributeStore } from '../../store/attributeStore'
+import FlagPicker from '../shared/FlagPicker'
 import './ScriptEditor.css'
 
 // ── Cache de datos del juego (para los pickers de campos) ────────────────────
@@ -62,7 +64,7 @@ import './ScriptEditor.css'
 //   - Al nivel de módulo JS el cache sobrevive toda la sesión.
 //   - Se invalida cuando cambia gameDir (juego diferente abierto).
 /** @type {{gameDir:string|null, rooms:Array, objects:Array, verbsets:Array, audios:Array, scripts:Array}} */
-const _gameDataCache = { gameDir: null, rooms: [], objects: [], verbsets: [], audios: [], scripts: [] }
+const _gameDataCache = { gameDir: null, rooms: [], objects: [], verbsets: [], audios: [], scripts: [], sequences: [] }
 
 /**
  * Hook que proporciona todos los datos del proyecto necesarios para los pickers
@@ -80,11 +82,14 @@ function useGameData(gameDir) {
   const dialogues  = useDialogueStore(s => s.dialogues)
   const locales    = useLocaleStore(s => s.locales)
   const activeLang = useLocaleStore(s => s.activeLang)
-  const [rooms, setRooms]       = useState(_gameDataCache.rooms)
-  const [objects, setObjects]   = useState(_gameDataCache.objects)
-  const [verbsets, setVerbsets] = useState(_gameDataCache.verbsets)
-  const [audios, setAudios]     = useState(_gameDataCache.audios)
-  const [scripts, setScripts]   = useState(_gameDataCache.scripts)
+  const attributes  = useAttributeStore(s => s.attributes)
+  const attrsEnabled = useAttributeStore(s => s.enabled)
+  const [rooms, setRooms]           = useState(_gameDataCache.rooms)
+  const [objects, setObjects]       = useState(_gameDataCache.objects)
+  const [verbsets, setVerbsets]     = useState(_gameDataCache.verbsets)
+  const [audios, setAudios]         = useState(_gameDataCache.audios)
+  const [scripts, setScripts]       = useState(_gameDataCache.scripts)
+  const [sequences, setSequences]   = useState(_gameDataCache.sequences)
 
   useEffect(() => {
     if (!gameDir || _gameDataCache.gameDir === gameDir) return
@@ -118,6 +123,10 @@ function useGameData(gameDir) {
       const v = r.ok ? (r.scripts || []) : []
       _gameDataCache.scripts = v; setScripts(v)
     })
+    window.api.listSequences(gameDir).then(r => {
+      const v = r.ok ? (r.sequences || []) : []
+      _gameDataCache.sequences = v; setSequences(v)
+    })
   }, [gameDir])
 
   function charName(id) {
@@ -128,7 +137,8 @@ function useGameData(gameDir) {
 
   const activeScriptId = useScriptStore ? useScriptStore(s => s.activeScript?.id) : ''
   const { activeGame } = useAppStore()
-  return { chars, rooms, objects, verbsets, audios, scripts, dialogues, charName,
+  return { chars, rooms, objects, verbsets, audios, scripts, sequences, dialogues,
+           attributes, attrsEnabled, charName,
            locales, activeLang, langs: useLocaleStore.getState().langs || ['es'],
            activeScriptId, activeGame,
            gameDir: activeGame?.gameDir || gameDir }
@@ -351,6 +361,17 @@ function FieldPicker({ fieldDef, value, onChange, data, instr = {}, scriptId = '
         </div>
       )
     }
+    case 'flag':
+      return <FlagPicker value={value || ''} onChange={onChange} placeholder={ph || '— flag —'} />
+    case 'attr_id': {
+      const { attributes: attrs, attrsEnabled: ae, locales: locs, activeLang: al } = data
+      return ae
+        ? <select value={value || ''} onChange={e => onChange(e.target.value)}>
+            <option value="">— atributo —</option>
+            {(attrs || []).map(a => <option key={a.id} value={a.id}>{(locs[al] || {})[a.nameKey] || a.id}{a.isDeathAttr ? ' 💀' : ''}</option>)}
+          </select>
+        : <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Sistema RPG desactivado</span>
+    }
     default:
       return <input type="text" value={value || ''} placeholder={ph || k} onChange={e => onChange(e.target.value)} />
   }
@@ -374,7 +395,7 @@ function FieldPicker({ fieldDef, value, onChange, data, instr = {}, scriptId = '
 function ConditionEditor({ value, onChange, data }) {
   const cond = value || { type: 'flag_is', flag: '', boolValue: true }
   const def  = COND_TYPES[cond.type] || {}
-  const { chars, rooms, objects, charName } = data
+  const { chars, rooms, objects, charName, attributes, attrsEnabled, locales, activeLang } = data
 
   function up(partial) { onChange({ ...cond, ...partial }) }
 
@@ -387,8 +408,7 @@ function ConditionEditor({ value, onChange, data }) {
       </select>
 
       {def.fields?.includes('flag') && (
-        <input type="text" placeholder="nombre_flag" value={cond.flag || ''}
-          onChange={e => up({ flag: e.target.value })} />
+        <FlagPicker value={cond.flag || ''} onChange={id => up({ flag: id })} />
       )}
       {def.fields?.includes('boolValue') && (
         <select value={String(cond.boolValue ?? true)} onChange={e => up({ boolValue: e.target.value === 'true' })}>
@@ -401,12 +421,23 @@ function ConditionEditor({ value, onChange, data }) {
           onChange={e => up({ value: e.target.value })} style={{ width: 72 }} />
       )}
       {def.fields?.includes('target') && (
-        <input type="text" placeholder="char:id / obj:id" value={cond.target || ''}
-          onChange={e => up({ target: e.target.value })} />
+        <select value={cond.target || ''} onChange={e => up({ target: e.target.value })}>
+          <option value="">— personaje u objeto —</option>
+          <optgroup label="Personajes">
+            {chars.map(c => <option key={c.id} value={`char:${c.id}`}>{charName(c.id)}</option>)}
+          </optgroup>
+          <optgroup label="Objetos">
+            {objects.map(o => <option key={o.id} value={`obj:${o.id}`}>{o.name || o.id}</option>)}
+          </optgroup>
+        </select>
       )}
       {def.fields?.includes('attr') && (
-        <input type="text" placeholder="hp/mp/xp/..." value={cond.attr || ''}
-          onChange={e => up({ attr: e.target.value })} style={{ width: 72 }} />
+        attrsEnabled
+          ? <select value={cond.attr || ''} onChange={e => up({ attr: e.target.value })}>
+              <option value="">— atributo —</option>
+              {(attributes || []).map(a => <option key={a.id} value={a.id}>{(locales[activeLang] || {})[a.nameKey] || a.id}{a.isDeathAttr ? ' 💀' : ''}</option>)}
+            </select>
+          : <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Sistema RPG desactivado</span>
       )}
       {def.fields?.includes('charId') && (
         <select value={cond.charId || ''} onChange={e => up({ charId: e.target.value })}>
@@ -448,9 +479,19 @@ function ConditionEditor({ value, onChange, data }) {
  * @param {Object} props.data - Datos del proyecto
  */
 function TriggerEditor({ trigger, onChange, data }) {
-  const { chars, rooms, objects, verbsets, dialogues, audios, scripts, charName,
-          locales, activeLang } = data
+  const { chars, rooms, objects, verbsets, dialogues, audios, scripts, sequences,
+          attributes, attrsEnabled, charName, locales, activeLang, gameDir } = data
   const tdef = TRIGGERS[trigger.type] || { fields: [] }
+
+  const [dlgNodes, setDlgNodes] = useState([])
+  useEffect(() => {
+    if (!tdef.fields.includes('nodeId')) return
+    const did = trigger.dialogueId
+    if (!did || !gameDir) { setDlgNodes([]); return }
+    window.api.readDialogue(gameDir, did).then(r => {
+      setDlgNodes(r.ok ? (r.dialogue?.nodes || []) : [])
+    })
+  }, [trigger.dialogueId, gameDir])
 
   function up(partial) { onChange({ ...trigger, ...partial }) }
 
@@ -540,9 +581,11 @@ function TriggerEditor({ trigger, onChange, data }) {
         </label>
       )}
       {tdef.fields.includes('nodeId') && (
-        <label>Nodo ID
-          <input type="text" placeholder="node_xxx" value={trigger.nodeId || ''}
-            onChange={e => up({ nodeId: e.target.value })} />
+        <label>Nodo
+          <select value={trigger.nodeId || ''} onChange={e => up({ nodeId: e.target.value })}>
+            <option value="">— nodo —</option>
+            {dlgNodes.map(n => <option key={n.id} value={n.id}>{n.type}: {n.id.slice(-8)}</option>)}
+          </select>
         </label>
       )}
       {tdef.fields.includes('choiceIndex') && (
@@ -553,8 +596,7 @@ function TriggerEditor({ trigger, onChange, data }) {
       )}
       {tdef.fields.includes('flag') && (
         <label>Flag
-          <input type="text" placeholder="nombre_flag" value={trigger.flag || ''}
-            onChange={e => up({ flag: e.target.value })} />
+          <FlagPicker value={trigger.flag || ''} onChange={id => up({ flag: id })} />
         </label>
       )}
       {tdef.fields.includes('operator') && (
@@ -574,15 +616,27 @@ function TriggerEditor({ trigger, onChange, data }) {
         </label>
       )}
       {tdef.fields.includes('target') && (
-        <label>Target (char:id / obj:id)
-          <input type="text" placeholder="char:id" value={trigger.target || ''}
-            onChange={e => up({ target: e.target.value })} />
+        <label>Target
+          <select value={trigger.target || ''} onChange={e => up({ target: e.target.value })}>
+            <option value="">— personaje u objeto —</option>
+            <optgroup label="Personajes">
+              {chars.map(c => <option key={c.id} value={`char:${c.id}`}>{charName(c.id)}</option>)}
+            </optgroup>
+            <optgroup label="Objetos">
+              {objects.map(o => <option key={o.id} value={`obj:${o.id}`}>{o.name || o.id}</option>)}
+            </optgroup>
+          </select>
         </label>
       )}
       {tdef.fields.includes('attrName') && (
         <label>Atributo
-          <input type="text" placeholder="hp/mp/xp/..." value={trigger.attrName || ''}
-            onChange={e => up({ attrName: e.target.value })} />
+          {attrsEnabled
+            ? <select value={trigger.attrName || ''} onChange={e => up({ attrName: e.target.value })}>
+                <option value="">— atributo —</option>
+                {(attributes || []).map(a => <option key={a.id} value={a.id}>{(locales[activeLang] || {})[a.nameKey] || a.id}{a.isDeathAttr ? ' 💀' : ''}</option>)}
+              </select>
+            : <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Sistema RPG desactivado</span>
+          }
         </label>
       )}
       {tdef.fields.includes('seconds') && (
@@ -592,9 +646,11 @@ function TriggerEditor({ trigger, onChange, data }) {
         </label>
       )}
       {tdef.fields.includes('sequenceId') && (
-        <label>Secuencia ID
-          <input type="text" placeholder="seq_xxx" value={trigger.sequenceId || ''}
-            onChange={e => up({ sequenceId: e.target.value })} />
+        <label>Secuencia
+          <select value={trigger.sequenceId || ''} onChange={e => up({ sequenceId: e.target.value })}>
+            <option value="">— secuencia —</option>
+            {sequences.map(s => <option key={s.id} value={s.id}>{s.name || s.id}</option>)}
+          </select>
         </label>
       )}
       {tdef.fields.includes('targetId') && (

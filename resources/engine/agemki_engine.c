@@ -163,6 +163,7 @@ typedef struct { char id[32]; s16 x, y; }         EntryPoint;
 typedef struct { char id[32]; Rect tz;
                  char target_room[32];
                  char target_entry[32];
+                 char entry_dir[8];   /* orientacion al entrar, "" = mantener actual */
                  char name_key[48];
                  u8   enabled; }                  Exit;
 
@@ -1747,7 +1748,12 @@ void engine_change_room(const char* room_id, const char* entry_id) {
     if (g_exiting_via_id[0] && g_exit_via_count > 0) {
         int _ev; for (_ev = 0; _ev < g_exit_via_count; _ev++) {
             if (_str_eq(g_exit_via_handlers[_ev].exit_id, g_exiting_via_id)) {
+                do { _mouse_poll(); } while (g_mouse.buttons);
+                g_say_skip = 0;
+                g_script_running = 1;
                 g_exit_via_handlers[_ev].fn();
+                do { _mouse_poll(); } while (g_mouse.buttons);
+                g_script_running = 0;
                 return;
             }
         }
@@ -1755,7 +1761,12 @@ void engine_change_room(const char* room_id, const char* entry_id) {
     /* Disparar room_exit genérico si hay handler y no esta bloqueado */
     if (g_on_room_exit) {
         g_exit_blocked = 0;
+        do { _mouse_poll(); } while (g_mouse.buttons);
+        g_say_skip = 0;
+        g_script_running = 1;
         g_on_room_exit();
+        g_script_running = 0;
+        do { _mouse_poll(); } while (g_mouse.buttons);
         if (g_exit_blocked) return;
     }
 
@@ -2124,6 +2135,7 @@ void engine_register_entry(const char* id, s16 x, s16 y) {
  * Si el script lo modificó en una visita anterior, el estado persistido tiene prioridad. */
 void engine_register_exit(const char* id, s16 x, s16 y, s16 w, s16 h,
                            const char* target_room, const char* target_entry,
+                           const char* entry_dir,
                            const char* name_key, u8 initial_enabled) {
     int _j;
     if (g_exit_count >= MAX_EXITS) return;
@@ -2132,6 +2144,7 @@ void engine_register_exit(const char* id, s16 x, s16 y, s16 w, s16 h,
     g_exits[g_exit_count].tz.w = w; g_exits[g_exit_count].tz.h = h;
     _strlcpy(g_exits[g_exit_count].target_room,  target_room,  32);
     _strlcpy(g_exits[g_exit_count].target_entry, target_entry, 32);
+    _strlcpy(g_exits[g_exit_count].entry_dir,    entry_dir ? entry_dir : "", 8);
     _strlcpy(g_exits[g_exit_count].name_key,     name_key ? name_key : "", 48);
     /* Estado por defecto: el diseñado en el editor */
     g_exits[g_exit_count].enabled = initial_enabled;
@@ -6488,9 +6501,13 @@ static void _check_exits(void) {
         if (!_str_eq(g_exits[i].id, g_pending_exit_id)) continue;
         if (px >= tz->x - tol_x && px <= tz->x + tz->w + tol_x &&
             py >= tz->y - tol_y && py <= tz->y + tz->h + tol_y) {
+            char _edir[8];
+            _strlcpy(_edir, g_exits[i].entry_dir, 8);
             _strlcpy(g_exiting_via_id, g_exits[i].id, 32); /* preservar para dispatch en engine_change_room */
             g_pending_exit_id[0] = '\0';
             engine_change_room(g_exits[i].target_room, g_exits[i].target_entry);
+            if (_edir[0] && g_char_count > 0)
+                engine_face_dir(g_chars[g_protagonist].id, _edir);
             return;
         }
     }
@@ -8357,7 +8374,12 @@ int engine_process_input(void) {
                                 if (g_verb_handlers[_hi].require_both_inv && !_inv_contains(clicked_inv)) {
                                     _show_no_inv_overlay();
                                 } else {
+                                    do { _mouse_poll(); } while (g_mouse.buttons);
+                                    g_say_skip = 0;
+                                    g_script_running = 1;
                                     g_verb_handlers[_hi].fn();
+                                    do { _mouse_poll(); } while (g_mouse.buttons);
+                                    g_script_running = 0;
                                 }
                                 g_usar_con_mode=0; g_usar_con_inv[0]='\0'; g_usar_con_base[0]='\0';
                                 _reset_verb_action();
@@ -8400,7 +8422,7 @@ int engine_process_input(void) {
                                  * Guard: no reentrar si hay un engine_say bloqueante activo. */
                                 int _hi; int _found=0;
                                 _hi = _find_verb_handler(g_selected_verb, clicked_inv, 1);
-                                if (_hi >= 0) { g_say_skip = 0; g_verb_handlers[_hi].fn(); _reset_verb_action(); _found=1; }
+                                if (_hi >= 0) { do{_mouse_poll();}while(g_mouse.buttons); g_say_skip=0; g_script_running=1; g_verb_handlers[_hi].fn(); do{_mouse_poll();}while(g_mouse.buttons); g_script_running=0; _reset_verb_action(); _found=1; }
                                 if (!_found) {
                                     char _rk[96]; const char* _resp;
                                     snprintf(_rk,sizeof(_rk),"obj.%s.inv_verb.%s",clicked_inv,g_selected_verb);
@@ -8449,7 +8471,7 @@ int engine_process_input(void) {
                                  * Guard: no reentrar si hay un engine_say bloqueante activo. */
                                 int _hi; int _found=0;
                                 _hi = _find_verb_handler(_defverb, clicked_inv, 1);
-                                if (_hi >= 0) { g_say_skip = 0; g_verb_handlers[_hi].fn(); _found=1; }
+                                if (_hi >= 0) { do{_mouse_poll();}while(g_mouse.buttons); g_say_skip=0; g_script_running=1; g_verb_handlers[_hi].fn(); do{_mouse_poll();}while(g_mouse.buttons); g_script_running=0; _found=1; }
                                 if (!_found) {
                                     /* Mostrar respuesta de texto */
                                     char _rk[96]; const char* _resp=NULL;
@@ -8539,7 +8561,12 @@ int engine_process_input(void) {
                     if (g_verb_handlers[_hi].require_both_inv && !_inv_contains(_tgt)) {
                         _show_no_inv_overlay();
                     } else {
+                        do { _mouse_poll(); } while (g_mouse.buttons);
+                        g_say_skip = 0;
+                        g_script_running = 1;
                         g_verb_handlers[_hi].fn();
+                        do { _mouse_poll(); } while (g_mouse.buttons);
+                        g_script_running = 0;
                     }
                     g_usar_con_mode=0; g_usar_con_inv[0]='\0'; g_usar_con_base[0]='\0';
                     _reset_verb_action();
@@ -8740,7 +8767,12 @@ int engine_process_input(void) {
                     /* Handler manual tiene prioridad sobre auto-pickup */
                     { int _hi2 = _find_verb_handler(g_selected_verb, obj, 0);
                       if (_hi2 >= 0 && g_verb_handlers[_hi2].fn != NULL) {
+                          do { _mouse_poll(); } while (g_mouse.buttons);
+                          g_say_skip = 0;
+                          g_script_running = 1;
                           g_verb_handlers[_hi2].fn();
+                          do { _mouse_poll(); } while (g_mouse.buttons);
+                          g_script_running = 0;
                           _executed = 1; _is_pv2 = 0;
                       }
                     }

@@ -1,9 +1,11 @@
+import { useEffect } from 'react'
 import { useAppStore } from './store/appStore'
 import { useDialogueStore } from './store/dialogueStore'
 import { useScriptStore }   from './store/scriptStore'
 import { useSequenceStore } from './store/sequenceStore'
 import { useCharStore }     from './store/charStore'
 import { useLocaleStore }   from './store/localeStore'
+import { useFlagStore }     from './store/flagStore'
 import GameManager from './components/GameManager/GameManager'
 import EditorLayout from './components/shared/EditorLayout'
 import AssetStudio from './components/AssetStudio/AssetStudio'
@@ -52,6 +54,11 @@ function resolveModule(id) {
 
 export default function App() {
   const { activeGame, activeModule, secondaryModule } = useAppStore()
+  const loadFlags = useFlagStore(s => s.load)
+
+  useEffect(() => {
+    if (activeGame?.gameDir) loadFlags(activeGame.gameDir)
+  }, [activeGame?.gameDir])
 
   if (!activeGame) return <GameManager />
 

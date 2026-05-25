@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useEffect } from 'react'
 import { useAppStore } from '../../store/appStore'
 import { convertToPCX, loadImageFile, normalizePcxName, pcxFileToDataURL } from '../../utils/pcxConverter'
 import AssetEditor from './AssetEditor'
+import PalettePanel from './PalettePanel'
 import './AssetStudio.css'
 
 const ASSET_TYPES = [
@@ -15,6 +16,7 @@ const STUDIO_TABS = [
   { id: 'assets',       label: 'Assets',       icon: '🖼' },
   { id: 'editor',       label: 'Editor',        icon: '✏' },
   { id: 'herramientas', label: 'Herramientas',  icon: '🔧' },
+  { id: 'paleta',       label: 'Paleta',        icon: '🎨' },
 ]
 
 const TOOLS = [
@@ -562,6 +564,8 @@ export default function AssetStudio() {
         )}
 
         {activeTab === 'herramientas' && <ToolsPanel />}
+
+        {activeTab === 'paleta' && <PalettePanel />}
       </div>
     </div>
   )

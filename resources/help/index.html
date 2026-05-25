@@ -125,6 +125,10 @@
   <a href="#install">Instalación</a>
   <a href="#layout">Interfaz del editor</a>
 
+  <div class="nav-section">Para empezar</div>
+  <a href="#conceptos">📚 Conceptos básicos</a>
+  <a href="#primeros-pasos">🚀 Primeros 5 minutos</a>
+
   <div class="nav-section">Tutorial completo</div>
   <a href="#tut-overview">Visión general</a>
   <a href="#tut-project">1. Crear el proyecto</a>
@@ -136,6 +140,10 @@
   <a href="#tut-npc">7. NPC con objeto</a>
   <a href="#tut-script">8. Scripts de interacción</a>
   <a href="#tut-build">9. Compilar y probar</a>
+
+  <div class="nav-section">Ayuda</div>
+  <a href="#faq">❓ Preguntas frecuentes</a>
+  <a href="#errores">🔧 Problemas comunes</a>
 
   <div class="nav-section">Referencia</div>
   <a href="#ref-modules">Módulos del editor</a>
@@ -216,6 +224,7 @@
 <div class="tip">Al cambiar de módulo con cambios sin guardar, el editor te preguntará si deseas guardar antes de continuar.</div>
 
 <h3>Atajos globales</h3>
+
 <table>
   <tr><th>Atajo</th><th>Acción</th></tr>
   <tr><td><kbd>Ctrl</kbd>+<kbd>S</kbd></td><td>Guardar todo</td></tr>
@@ -223,6 +232,127 @@
   <tr><td><kbd>F5</kbd></td><td>Compilar solo en modo debug</td></tr>
   <tr><td><kbd>F6</kbd></td><td>Compilar release (genera ficheros DAT de distribución)</td></tr>
 </table>
+</section>
+
+<hr>
+
+<!-- ══ CONCEPTOS BÁSICOS ═══════════════════════════════════════════════════ -->
+<section id="conceptos">
+<h2>Conceptos básicos — el vocabulario del editor</h2>
+<div class="chapter-intro">
+  <p>Si nunca has usado AGEMKI ni un editor de aventuras, empieza aquí. Estos son los bloques fundamentales que encontrarás en todo el editor.</p>
+</div>
+
+<h3>Room (sala)</h3>
+<p>Una <strong>room</strong> es una pantalla del juego — la taberna, el muelle, el castillo. Cada room tiene su propio fondo, sus personajes, sus objetos y su mapa de caminos. El juego es una colección de rooms conectadas por <strong>salidas (exits)</strong>.</p>
+<div class="tip">Piensa en una room como en un plano de cine: fondo pintado, actores colocados, cámara fija.</div>
+
+<h3>Walkmap</h3>
+<p>El walkmap es el <strong>área del suelo</strong> donde el protagonista puede caminar. Fuera del walkmap, el personaje no puede ir. Se dibuja como polígonos verdes en el Scene Editor.</p>
+
+<h3>Entry point (punto de entrada)</h3>
+<p>Cuando el protagonista llega a una room (por ejemplo, al cruzar una puerta), aparece en el <strong>entry point</strong> de esa room. Cada room tiene al menos uno (<code>entry_default</code>). Puedes tener varios para llegar desde diferentes direcciones.</p>
+
+<h3>Exit (salida)</h3>
+<p>Un exit es una <strong>zona invisible del suelo</strong> que, cuando el protagonista la pisa, lo lleva a otra room. Se configura indicando qué room de destino y qué entry point usar al llegar.</p>
+
+<h3>Flag (bandera / variable)</h3>
+<p>Un flag es una <strong>variable global del juego</strong> que guarda información sobre el estado de la historia. Por ejemplo: <code>puerta_abierta = true</code>, <code>veces_hablado_con_diego = 3</code>.</p>
+<p>Los flags persisten aunque el jugador cambie de room o guarde la partida. Úsalos para recordar qué ha pasado y controlar qué ocurre después.</p>
+<div class="info">Ejemplo: el diálogo con el posadero establece <code>diego_va_a_buscar_bolsa = true</code>. Un script escucha ese flag y, cuando cambia, hace que Diego camine al almacén. Sin flags, los dos no se comunicarían.</div>
+
+<h3>Script</h3>
+<p>Un script es una <strong>lista de instrucciones que se ejecutan cuando ocurre algo</strong>. Ese "algo" es el <strong>disparador (trigger)</strong>: el jugador usa un verbo en un objeto, entra en una sala, cambia un flag, etc.</p>
+<p>Las instrucciones son cosas como: mover un personaje, mostrar un texto, reproducir música, cambiar de room, dar un objeto al inventario...</p>
+<div class="warn">Los scripts <strong>bloquean el juego</strong> mientras se ejecutan — el jugador no puede hacer clic en nada hasta que terminen. Esto es lo esperado: así funcionan las aventuras gráficas clásicas.</div>
+
+<h3>Secuencia</h3>
+<p>Una secuencia es como un script, pero para <strong>cutscenes</strong> (cinemáticas). Es una lista ordenada de pasos visuales: fundidos, textos, personajes caminando, música... El jugador no controla nada mientras una secuencia está activa.</p>
+<p><strong>Diferencia clave con los scripts:</strong> las secuencias son lineales y visuales; los scripts son lógica de juego con condiciones y ramificaciones.</p>
+
+<h3>Diálogo</h3>
+<p>Un diálogo es un <strong>árbol de conversación</strong> con nodos: líneas de personajes, opciones que elige el jugador, y acciones que se ejecutan según la elección. Se edita visualmente como un grafo de nodos conectados.</p>
+
+<h3>Verbset</h3>
+<p>El verbset es el <strong>conjunto de verbos</strong> disponibles para el jugador: Mirar, Coger, Usar, Hablar, Abrir, Cerrar... Los verbos aparecen en la barra inferior del juego. Puedes tener diferentes verbsets para diferentes momentos del juego (interior, combate, etc.).</p>
+
+<h3>Trigger (disparador)</h3>
+<p>Un trigger es la <strong>condición que activa un script</strong>. Los más usados:</p>
+<table>
+  <tr><th>Trigger</th><th>Qué lo activa</th><th>Ejemplo típico</th></tr>
+  <tr><td><code>verb_object</code></td><td>El jugador usa un verbo en un objeto</td><td>Usar "Abrir" en la puerta</td></tr>
+  <tr><td><code>room_exit_via</code></td><td>El jugador sale por una salida concreta</td><td>Salir por la puerta norte</td></tr>
+  <tr><td><code>room_enter</code></td><td>El protagonista entra en la sala</td><td>Música que suena al entrar</td></tr>
+  <tr><td><code>flag_change</code></td><td>Un flag cambia de valor</td><td>Diego camina al almacén cuando el flag cambia a <em>true</em></td></tr>
+  <tr><td><code>game_start</code></td><td>Comienza una nueva partida</td><td>Secuencia de introducción</td></tr>
+</table>
+</section>
+
+<!-- ══ PRIMEROS 5 MINUTOS ═══════════════════════════════════════════════════ -->
+<section id="primeros-pasos">
+<h2>Primeros 5 minutos — tu primer juego funcional</h2>
+<div class="chapter-intro">
+  <p>Esta guía mínima crea un juego de una sola pantalla: el protagonista aparece, puedes hacer clic en un objeto, y el juego responde con un texto. Sin código, sin configuraciones avanzadas.</p>
+</div>
+
+<div class="steps">
+  <div class="step"><div class="step-num">1</div><div class="step-body">
+    <strong>Crear el proyecto y el juego</strong>
+    Pulsa <kbd>+ Nuevo proyecto</kbd>, ponle un nombre y elige carpeta. Dentro, pulsa <kbd>+ Nuevo juego</kbd>. Con eso ya tienes la estructura lista.
+  </div></div>
+
+  <div class="step"><div class="step-num">2</div><div class="step-body">
+    <strong>Crear una room</strong>
+    Ve al módulo <span class="badge badge-room">🏠 Rooms</span> → <kbd>+ Nueva room</kbd>. Ponle nombre (ej: <em>sala</em>). Doble clic para abrirla en el Scene Editor.
+    <br><br>
+    No necesitas fondo de momento — el motor usará negro por defecto.
+  </div></div>
+
+  <div class="step"><div class="step-num">3</div><div class="step-body">
+    <strong>Dibujar el walkmap</strong>
+    En el panel lateral, activa la capa <strong>Walkmap</strong>. Selecciona la herramienta <kbd>Rectángulo</kbd> (tecla <kbd>R</kbd>). Dibuja un rectángulo en la mitad inferior de la pantalla. Eso es el suelo donde caminará el protagonista.
+  </div></div>
+
+  <div class="step"><div class="step-num">4</div><div class="step-body">
+    <strong>Crear un personaje protagonista</strong>
+    Módulo <span class="badge badge-char">🧍 Personajes</span> → <kbd>+ Nuevo personaje</kbd>. Nombre: <em>Protagonista</em>. Activa <strong>Es protagonista</strong>. Guarda.
+    <br><br>
+    Sin sprite por ahora: el motor dibujará un rectángulo de placeholder.
+  </div></div>
+
+  <div class="step"><div class="step-num">5</div><div class="step-body">
+    <strong>Colocar el personaje en la room</strong>
+    Vuelve al Scene Editor. En el panel lateral, activa la capa <strong>Personajes</strong>. Verás tu personaje en la lista — arrástralo al canvas, sobre el walkmap.
+  </div></div>
+
+  <div class="step"><div class="step-num">6</div><div class="step-body">
+    <strong>Crear un objeto y un script de respuesta</strong>
+    Módulo <span class="badge badge-asset">📦 Objetos</span> → <kbd>+ Nuevo objeto</kbd>. Nombre: <em>cofre</em>.
+    <br><br>
+    Ahora ve al módulo <span class="badge badge-scr">📜 Scripts</span> → <kbd>+ Nuevo script</kbd>. Nombre: <em>mirar_cofre</em>.
+    <ul>
+      <li>Disparador: <code>verb_object</code> · verbo: <code>mirar</code> · objeto: <code>cofre</code></li>
+      <li>Añade instrucción: <code>SHOW_TEXT</code> · escribe el texto directamente en el campo de texto</li>
+    </ul>
+  </div></div>
+
+  <div class="step"><div class="step-num">7</div><div class="step-body">
+    <strong>Colocar el objeto en la room y compilar</strong>
+    Vuelve al Scene Editor. Activa la capa <strong>Objetos</strong>. Coloca el cofre en la sala. Guarda con <kbd>Ctrl+S</kbd>.
+    <br><br>
+    Ve al módulo <span class="badge badge-build">🔨 Build</span> → <kbd>▶ Build + Run</kbd>. Si Open Watcom y DOSBox-X están configurados, el juego arrancará en segundos.
+  </div></div>
+</div>
+
+<div class="info">¿El botón Build está en gris o da error? Ve a Preferencias y comprueba que las rutas de Open Watcom y DOSBox-X son correctas.</div>
+
+<h3>¿Qué hacer si algo no funciona?</h3>
+<ul>
+  <li><strong>El personaje no se mueve:</strong> el walkmap puede estar vacío. Vuelve al Scene Editor → capa Walkmap y dibuja el área del suelo.</li>
+  <li><strong>El objeto no responde al clic:</strong> verifica que el script tiene el disparador <code>verb_object</code> con el verbo y objeto correctos.</li>
+  <li><strong>DOSBox-X no arranca:</strong> en Preferencias → Herramientas externas, comprueba la ruta de DOSBox-X.</li>
+  <li><strong>Error de compilación Watcom:</strong> comprueba la ruta de Open Watcom. El log mostrará el error en rojo.</li>
+</ul>
 </section>
 
 <hr>
@@ -713,8 +843,103 @@
 </section>
 
 <hr>
+
+<!-- ══ FAQ ══════════════════════════════════════════════════════════════════ -->
+<section id="faq">
+<h2>Preguntas frecuentes</h2>
+
+<h3>¿Tengo que saber programar?</h3>
+<p>No. Nunca escribirás código C ni código de ningún tipo. Todo el contenido del juego — salas, personajes, diálogos, scripts, música — se crea visualmente en el editor y se guarda como archivos JSON legibles. El editor genera el código C y el ejecutable DOS por ti.</p>
+
+<h3>¿Qué diferencia hay entre un script y una secuencia?</h3>
+<p>Un <strong>script</strong> responde a interacciones del jugador (clic en objeto, usar un verbo, cambiar un flag) y puede tener condiciones. Una <strong>secuencia</strong> es una cinemática que se lanza sola, sin participación del jugador — fundidos, textos de título, personajes que caminan solos, música de fondo.</p>
+<p>Regla práctica: si el jugador lo activa → script. Si es una cutscene automática → secuencia.</p>
+
+<h3>¿Para qué sirven los flags?</h3>
+<p>Los flags son la memoria del juego. Sin flags, el juego no recuerda nada — si el jugador ya habló con Diego, si la puerta está abierta, cuántas veces recargó la partida.</p>
+<p>Ejemplo típico: diálogo con NPC → establece flag <code>hable_con_diego = true</code> → script escucha ese flag → Diego camina a buscar el objeto. Sin el flag, el script no sabría cuándo ejecutarse.</p>
+
+<h3>¿Cuántos flags puedo tener?</h3>
+<p>Los flags se gestionan en el módulo <strong>Variables</strong>. Puedes tener tantos como quieras — no hay límite en el editor. En el motor DOS, los flags se guardan en memoria estática; el límite real es del orden de cientos, más que suficiente para cualquier aventura.</p>
+
+<h3>¿Puedo previsualizar el juego sin compilar?</h3>
+<p>No completamente — el juego corre en DOS y requiere el ejecutable compilado. Pero el ciclo de compilación es rápido (segundos con un proyecto pequeño) y DOSBox-X arranca instantáneamente. La combinación Build + Run con <kbd>F7</kbd> es casi como un previsualizar.</p>
+
+<h3>¿Qué pasa si muevo o renombro carpetas del proyecto?</h3>
+<p>No muevas ni renombres las carpetas del proyecto a mano. El editor guarda rutas relativas dentro del proyecto. Si necesitas mover el proyecto, mueve toda la carpeta raíz de una vez.</p>
+
+<h3>Mi personaje no camina a un sitio, ¿por qué?</h3>
+<p>El pathfinder solo puede llevar al personaje a posiciones dentro del <strong>walkmap</strong>. Si el destino está fuera del walkmap pintado, el motor lo ignora o va hasta el punto más cercano posible. Amplía el walkmap en el Scene Editor (capa Walkmap).</p>
+
+<h3>¿El juego compilado funciona en DOS real?</h3>
+<p>Sí, esa es la meta. El ejecutable generado corre en un 486DX2 a 66MHz con 8MB de RAM bajo MS-DOS, usando el extensor DOS4GW. También corre perfectamente en DOSBox-X (que es lo que usa el botón ▶ Play del editor).</p>
+
+<h3>¿Puedo tener varios idiomas?</h3>
+<p>Sí. El sistema de localización es multiidioma desde el principio. Añade un código de idioma en el módulo Textos (ej: <code>en</code>, <code>fr</code>) y rellena las traducciones. En el juego, el jugador puede cambiar el idioma desde el menú de opciones.</p>
+
+<h3>¿Dónde se guardan los cambios?</h3>
+<p>Todo se guarda como ficheros JSON en la carpeta del proyecto. Puedes usar git para controlar versiones — cada room, personaje o script es un fichero independiente, así que los diffs son legibles.</p>
+</section>
+
+<!-- ══ PROBLEMAS COMUNES ════════════════════════════════════════════════════ -->
+<section id="errores">
+<h2>Problemas comunes y soluciones</h2>
+
+<table>
+  <tr><th>Síntoma</th><th>Causa probable</th><th>Solución</th></tr>
+  <tr>
+    <td>El personaje no se mueve al hacer clic</td>
+    <td>Walkmap vacío o el clic fue fuera del área de juego (zona de verbos)</td>
+    <td>Dibuja el walkmap en Scene Editor → capa Walkmap</td>
+  </tr>
+  <tr>
+    <td>Objeto no responde a verb_object</td>
+    <td>El script tiene mal el verbo o el ID del objeto</td>
+    <td>Compara el ID del objeto en Objetos con el del disparador en el script</td>
+  </tr>
+  <tr>
+    <td>El juego arranca pero la pantalla está negra</td>
+    <td>La room inicial no tiene fondo o no está configurada como room de inicio</td>
+    <td>Comprueba Proyecto → Configuración → Room inicial</td>
+  </tr>
+  <tr>
+    <td>Error Watcom: <em>undefined symbol</em></td>
+    <td>Un script referencia un objeto o personaje que no existe o fue borrado</td>
+    <td>Revisa el log de build — indica el símbolo y el fichero. Borra el script huérfano o recrea el recurso.</td>
+  </tr>
+  <tr>
+    <td>No hay sonido en DOSBox-X</td>
+    <td>Driver .ADV no colocado en <code>resources/drivers/</code> o DOSBox-X no configurado con <code>mpu401=intelligent</code></td>
+    <td>Sigue la guía de audio al final de esta ayuda</td>
+  </tr>
+  <tr>
+    <td>El sprite sale en un color incorrecto o con artefactos</td>
+    <td>El PNG importado usa colores fuera de la paleta del juego</td>
+    <td>Reimporta el asset en Asset Studio. Prueba diferentes opciones de dithering.</td>
+  </tr>
+  <tr>
+    <td>Los diálogos no avanzan al hacer clic</td>
+    <td>Normal — necesitas hacer clic o pulsar ESPACIO para avanzar cada línea</td>
+    <td>Comportamiento esperado. Si quieres duración automática, usa <code>SHOW_TEXT</code> con <em>duration</em> en segundos.</td>
+  </tr>
+  <tr>
+    <td>Un flag no dispara el script</td>
+    <td>El script tiene el trigger <code>flag_change</code> pero el flag se establece antes de que la room cargue el script</td>
+    <td>Asegúrate de que el script está en la misma room donde cambia el flag, o usa <code>game_start</code> para scripts globales</td>
+  </tr>
+  <tr>
+    <td>Build lento (más de 30 segundos)</td>
+    <td>Normal en proyectos grandes con muchos PCX. Los PCX se recompilan si cambian.</td>
+    <td>El build incremental solo recompila lo que cambió. Primera compilación siempre es la más lenta.</td>
+  </tr>
+</table>
+
+<div class="tip">Si el problema no aparece en esta tabla, mira el fichero <code>build/ENGINE.LOG</code> (en la carpeta build de tu proyecto). El motor escribe ahí todo lo que hace en tiempo de ejecución — suele señalar exactamente qué falla.</div>
+</section>
+
+<hr>
 <p style="text-align:center;color:var(--muted);font-size:12px;padding:20px 0">
-  AGEMKI v11.0 · Documento vivo — se actualiza con cada sprint
+  AGEMKI v32 · Documento vivo — se actualiza con cada sprint
 </p>
 
 <section id="ref-audio-setup">

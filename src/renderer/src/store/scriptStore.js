@@ -78,10 +78,10 @@ export const INSTR = {
   // Los atributos son propiedades numéricas de personajes u objetos.
   // Las variables locales (LET) solo viven durante la ejecución del script.
 
-  SET_FLAG:  { cat:'flags', label:'Activar flag',     fields:[{k:'flag',t:'text'},{k:'value',t:'text',ph:'true/false/número'}] },
-  SET_ATTR:  { cat:'flags', label:'Cambiar atributo', fields:[{k:'target',t:'target'},{k:'attr',t:'text',ph:'hp/mp/xp/...'},{k:'value',t:'text'}] },
+  SET_FLAG:  { cat:'flags', label:'Activar flag',     fields:[{k:'flag',t:'flag'},{k:'value',t:'text',ph:'true/false/número'}] },
+  SET_ATTR:  { cat:'flags', label:'Cambiar atributo', fields:[{k:'target',t:'target'},{k:'attr',t:'attr_id'},{k:'value',t:'text'}] },
   // amount puede ser negativo para restar
-  ADD_ATTR:  { cat:'flags', label:'Sumar a atributo', fields:[{k:'target',t:'target'},{k:'attr',t:'text',ph:'hp/mp/xp/...'},{k:'amount',t:'text',ph:'puede ser negativo'}] },
+  ADD_ATTR:  { cat:'flags', label:'Sumar a atributo', fields:[{k:'target',t:'target'},{k:'attr',t:'attr_id'},{k:'amount',t:'text',ph:'puede ser negativo'}] },
   // Variable local: scope = duración del script, no se serializa en savedata
   LET:       { cat:'flags', label:'Variable local',   fields:[{k:'varName',t:'text',ph:'nombre_var'},{k:'value',t:'text',ph:'valor o GET_ATTR(...)'}] },
 

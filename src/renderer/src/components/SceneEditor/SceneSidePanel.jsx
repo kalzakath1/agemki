@@ -6,6 +6,7 @@ import { useCharStore } from '../../store/charStore'
 import { useCharFirstFrame } from '../../hooks/useCharFirstFrame'
 import { useLocaleStore } from '../../store/localeStore'
 import { useSceneStore, TOOLS, LAYERS } from '../../store/sceneStore'
+import FlagPicker from '../shared/FlagPicker'
 import './SceneSidePanel.css'
 
 const LAYER_LIST = [
@@ -512,13 +513,23 @@ function ExitPanel({ room, gameDir, selectedExitId, onSelect, onAdd, onUpdate, o
                         onChange={v => onUpdate(ex.id, { targetEntry: v })} />
                     </label>
                   )}
+                  <label style={{ width: '100%' }}>Orientación al entrar
+                    <select value={ex.entryDir || ''}
+                      onChange={e => onUpdate(ex.id, { entryDir: e.target.value || null })}>
+                      <option value="">— mantener actual —</option>
+                      <option value="left">← Izquierda</option>
+                      <option value="right">→ Derecha</option>
+                      <option value="up">↑ Arriba</option>
+                      <option value="down">↓ Abajo</option>
+                    </select>
+                  </label>
                 </div>
 
                 <div className="char-inst-props__row">
                   <label style={{ flex: 1 }}>Condición (flag)
-                    <input type="text" placeholder="ej: puerta_abierta"
-                      value={ex.condition || ''}
-                      onChange={e => onUpdate(ex.id, { condition: e.target.value || null })} />
+                    <FlagPicker value={ex.condition || ''}
+                      onChange={id => onUpdate(ex.id, { condition: id || null })}
+                      placeholder="— sin condición —" />
                   </label>
                 </div>
                 <div className="char-inst-props__row" style={{ flexDirection: 'column', gap: 4 }}>

@@ -16,6 +16,10 @@ contextBridge.exposeInMainWorld('api', {
 
 
 
+  // Flags globales
+  readFlags:   (gameDir)          => ipcRenderer.invoke('flags:read', { gameDir }),
+  saveFlags:   (gameDir, flags)   => ipcRenderer.invoke('flags:save', { gameDir, flags }),
+
   // Objects
   listObjects:     (gameDir)          => ipcRenderer.invoke('object:list',      { gameDir }),
   createObject:    (gameDir, name, type) => ipcRenderer.invoke('object:create', { gameDir, name, type }),

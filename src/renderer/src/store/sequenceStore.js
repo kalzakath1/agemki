@@ -65,7 +65,7 @@ export const STEPS = {
     {k:'showUi',   t:'bool',     ph:'Mostrar UI'},
   ]},
   load_room:      { cat:'visual', label:'Cargar room (obsoleto)',  fields:[{k:'roomId',t:'room'},{k:'entryId',t:'entry',ph:'entry_default'}], hidden:true },
-  play_rooms:     { cat:'visual', label:'Play rooms (interactivo)', fields:[{k:'roomId',t:'room'},{k:'entryId',t:'entry',ph:'entry_default'},{k:'showUi',t:'bool',ph:'Mostrar UI'},{k:'flag',t:'text',ph:'flag de salida (opcional)'},{k:'value',t:'text',ph:'valor (vacío=true)'}], note:'Carga la room e inicia el modo interactivo. El flag es condición de salida.' },
+  play_rooms:     { cat:'visual', label:'Play rooms (interactivo)', fields:[{k:'roomId',t:'room'},{k:'entryId',t:'entry',ph:'entry_default'},{k:'showUi',t:'bool',ph:'Mostrar UI'},{k:'flag',t:'flag',ph:'flag de salida (opcional)'},{k:'value',t:'text',ph:'valor (vacío=true)'}], note:'Carga la room e inicia el modo interactivo. El flag es condición de salida.' },
   set_ui:         { cat:'visual', label:'Mostrar/ocultar UI',       fields:[{k:'visible',t:'bool',ph:'UI visible'}] },
 
   // ── Personajes ─────────────────────────────────────────────────────────────
@@ -138,11 +138,11 @@ export const STEPS = {
   set_object_state:     { cat:'object', label:'Cambiar estado objeto',     fields:[{k:'objectId',t:'object'},{k:'stateId',t:'text',ph:'id del estado'}] },
   set_object_anim_loop: { cat:'object', label:'Loop animación objeto',     fields:[{k:'objectId',t:'object'},{k:'loop',t:'bool'}], note:'Infinito=sí, Una vez=no' },
   wait_object_anim:     { cat:'object', label:'Esperar animación objeto',  fields:[{k:'objectId',t:'object'}], note:'Bloqueante hasta que acabe la animación (solo one-shot)' },
-  activate_object_flag: { cat:'object', label:'Activar flag objeto', hidden:true, fields:[{k:'objectId',t:'object'},{k:'flag',t:'text',ph:'nombre_flag'},{k:'value',t:'text',ph:'true'}] },
+  activate_object_flag: { cat:'object', label:'Activar flag objeto', hidden:true, fields:[{k:'objectId',t:'object'},{k:'flag',t:'flag',ph:'nombre_flag'},{k:'value',t:'text',ph:'true'}] },
 
   // ── Lógica ─────────────────────────────────────────────────────────────────
 
-  set_flag:      { cat:'logic', label:'Establecer flag',    fields:[{k:'flag',t:'text',ph:'nombre_flag'},{k:'value',t:'text',ph:'true/false/valor'}] },
+  set_flag:      { cat:'logic', label:'Establecer flag',    fields:[{k:'flag',t:'flag',ph:'nombre_flag'},{k:'value',t:'text',ph:'true/false/valor'}] },
   set_attr:      { cat:'logic', label:'Cambiar atributo',   fields:[
     {k:'target', t:'char', ph:'personaje'},
     {k:'attr',   t:'attr_id', ph:'atributo'},

@@ -44,7 +44,7 @@ const MODULES = [
   { id: 'objects',      label: 'Objetos',    icon: '📦' },
   { id: 'characters',   label: 'Personajes', icon: '🧍' },
   { id: 'verbsets',     label: 'Verbsets',   icon: '🖱' },
-  { id: 'attributes',   label: 'Atributos',  icon: '⚔️' },
+  { id: 'attributes',   label: 'Variables',  icon: '⚔️' },
   { id: 'localization', label: 'Textos',     icon: '🌐' },
   { id: 'audio',        label: 'Audio',      icon: '🎵' },
   { id: 'dialogues',    label: 'Diálogos',   icon: '💬' },

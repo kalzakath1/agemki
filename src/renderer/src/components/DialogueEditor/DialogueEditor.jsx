@@ -52,6 +52,7 @@ import { useLocaleStore } from '../../store/localeStore'
 import { useObjectStore } from '../../store/objectStore'
 import { useScriptStore } from '../../store/scriptStore'
 import PalettePicker from '../shared/PalettePicker'
+import FlagPicker from '../shared/FlagPicker'
 import './DialogueEditor.css'
 
 // ── Metadatos visuales de los tipos de nodo ───────────────────────────────────
@@ -680,55 +681,63 @@ function NodeGraph({ dialogue, onSelectNode, selectedNodeId, locales, activeLang
   )
 }
 
+// ── AnimPicker ────────────────────────────────────────────────────────────────
+// Definido a nivel de módulo para que React no lo desmonte en cada re-render.
+// __protagonist__: roles predefinidos + texto libre
+// NPC real: solo las animaciones definidas en su ficha de personaje
+function AnimPicker({ actorId, anims, value, onChange, placeholder = '— sin cambio —' }) {
+  if (actorId === '__protagonist__') {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+        <select value="" onChange={e => { if (e.target.value) onChange(e.target.value) }}
+          style={{ fontSize: '11px' }}>
+          <option value="">— rol base... —</option>
+          <optgroup label="Talk">
+            {['talk_up','talk_down','talk_left','talk_right'].map(r => <option key={r} value={r}>{r}</option>)}
+          </optgroup>
+          <optgroup label="Walk">
+            {['walk_up','walk_down','walk_left','walk_right'].map(r => <option key={r} value={r}>{r}</option>)}
+          </optgroup>
+          <optgroup label="Idle">
+            {['idle_up','idle_down','idle_left','idle_right'].map(r => <option key={r} value={r}>{r}</option>)}
+          </optgroup>
+        </select>
+        <input type="text" value={value || ''} placeholder="animación custom o vacío"
+          style={{ fontSize: '11px' }}
+          onChange={e => onChange(e.target.value || null)} />
+      </div>
+    )
+  }
+  return (
+    <select value={value || ''} onChange={e => onChange(e.target.value || null)}>
+      <option value="">{placeholder}</option>
+      {anims.length > 0 && (
+        <optgroup label="Animaciones">
+          {anims.map(a => <option key={a.id} value={a.id}>{a.name || a.id}</option>)}
+        </optgroup>
+      )}
+    </select>
+  )
+}
+
 // ── NodeInspector ─────────────────────────────────────────────────────────────
 function NodeInspector({ node, dialogue, gameDir, chars, objects, scripts, onUpdate, onDelete, onDuplicate, onAddChild, onAddChildOnce, onDisconnect }) {
   const { locales, langs, activeLang, setActiveLang, setKey } = useLocaleStore()
   const { dialogues, connectNodes } = useDialogueStore()
 
+  const [jumpNodes, setJumpNodes] = useState([])
+  useEffect(() => {
+    if (!node || node.type !== NODE_TYPES.JUMP) return
+    if (!node.targetDialogueId) { setJumpNodes(dialogue?.nodes || []); return }
+    window.api.readDialogue(gameDir, node.targetDialogueId).then(r => {
+      setJumpNodes(r.ok ? (r.dialogue?.nodes || []) : [])
+    })
+  }, [node?.type, node?.targetDialogueId, gameDir])
+
   // Helper: read localized text for a key in active lang
   function t(key) { return key ? (locales[activeLang] || {})[key] || '' : '' }
   // Helper: write localized text
   function setT(key, value) { if (key) setKey(activeLang, key, value) }
-
-  // Picker de animación: modo protagonista (12 roles + texto libre) o modo personaje (select normal)
-  function AnimPicker({ actorId, anims, value, onChange, placeholder = '— sin cambio —' }) {
-    if (actorId === '__protagonist__') {
-      return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-          <select value="" onChange={e => { if (e.target.value) onChange(e.target.value) }}
-            style={{ fontSize: '11px' }}>
-            <option value="">— rol base... —</option>
-            <optgroup label="Talk">
-              {['talk_up','talk_down','talk_left','talk_right'].map(r => <option key={r} value={r}>{r}</option>)}
-            </optgroup>
-            <optgroup label="Walk">
-              {['walk_up','walk_down','walk_left','walk_right'].map(r => <option key={r} value={r}>{r}</option>)}
-            </optgroup>
-            <optgroup label="Idle">
-              {['idle_up','idle_down','idle_left','idle_right'].map(r => <option key={r} value={r}>{r}</option>)}
-            </optgroup>
-          </select>
-          <input type="text" value={value || ''} placeholder="animación custom o vacío"
-            style={{ fontSize: '11px' }}
-            onChange={e => onChange(e.target.value || null)} />
-        </div>
-      )
-    }
-    const roleNames = ['idle','walk_right','walk_left','walk_up','walk_down','idle_up','idle_down']
-    return (
-      <select value={value || ''} onChange={e => onChange(e.target.value || null)}>
-        <option value="">{placeholder}</option>
-        {anims.length > 0 && (
-          <optgroup label="Animaciones">
-            {anims.map(a => <option key={a.id} value={a.id}>{a.name || a.id}</option>)}
-          </optgroup>
-        )}
-        <optgroup label="Roles del motor">
-          {roleNames.map(r => <option key={r} value={r}>{r}</option>)}
-        </optgroup>
-      </select>
-    )
-  }
 
   function getCharName(id) {
     if (!id) return ''
@@ -1088,9 +1097,9 @@ function NodeInspector({ node, dialogue, gameDir, chars, objects, scripts, onUpd
                               </select>
                               {condType === 'flag' && (
                                 <>
-                                  <input type="text" placeholder="nombre_flag" style={{ flex:1, minWidth:'80px' }}
+                                  <FlagPicker style={{ flex:1, minWidth:'80px' }}
                                     value={cond?.name ?? ''}
-                                    onChange={e => setCond({ name: e.target.value, value: cond?.value ?? 'true' })} />
+                                    onChange={name => setCond({ name, value: cond?.value ?? 'true' })} />
                                   <select style={{ flex:'0 0 auto', fontSize:'10px' }}
                                     value={cond?.value ?? 'true'}
                                     onChange={e => setCond({ name: cond?.name ?? '', value: e.target.value })}>
@@ -1189,8 +1198,8 @@ function NodeInspector({ node, dialogue, gameDir, chars, objects, scripts, onUpd
         {node.type === NODE_TYPES.BRANCH && (
           <>
             <label>Flag a comprobar
-              <input type="text" placeholder="nombre_del_flag" value={node.flag || ''}
-                onChange={e => onUpdate(node.id, { flag: e.target.value })} />
+              <FlagPicker value={node.flag || ''}
+                onChange={id => onUpdate(node.id, { flag: id })} />
             </label>
             <label>Operador
               <select value={node.operator || 'is_true'} onChange={e => onUpdate(node.id, { operator: e.target.value })}>
@@ -1232,11 +1241,10 @@ function NodeInspector({ node, dialogue, gameDir, chars, objects, scripts, onUpd
                   }}>✕</button>
                 </div>
                 {act.type.includes('flag') && (
-                  <input type="text" className="dlg-action-param"
-                    placeholder="nombre_flag"
+                  <FlagPicker className="dlg-action-param"
                     value={act.flag || ''}
-                    onChange={e => {
-                      const actions = node.actions.map((a, i) => i === idx ? { ...a, flag: e.target.value } : a)
+                    onChange={id => {
+                      const actions = node.actions.map((a, i) => i === idx ? { ...a, flag: id } : a)
                       onUpdate(node.id, { actions })
                     }} />
                 )}
@@ -1284,10 +1292,14 @@ function NodeInspector({ node, dialogue, gameDir, chars, objects, scripts, onUpd
                 {dialogues.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
               </select>
             </label>
-            <label>Nodo destino (ID)
-              <input type="text" placeholder="node_start (vacío = inicio)"
-                value={node.targetNodeId || ''}
-                onChange={e => onUpdate(node.id, { targetNodeId: e.target.value || null })} />
+            <label>Nodo destino
+              <select value={node.targetNodeId || ''}
+                onChange={e => onUpdate(node.id, { targetNodeId: e.target.value || null })}>
+                <option value="">— inicio —</option>
+                {jumpNodes.filter(n => n.id !== node.id).map(n => (
+                  <option key={n.id} value={n.id}>{n.type}: {n.id.slice(-8)}</option>
+                ))}
+              </select>
             </label>
           </>
         )}
