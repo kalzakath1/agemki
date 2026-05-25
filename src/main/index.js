@@ -1693,9 +1693,22 @@ function generateMakefile(gameDir, buildDir, gameId, isDebug, watcomDir, useMidp
     : `-3 -mf -O2 -za99 -w3 -wcd202 -wcd102 ${cellDefine}`
   const bd = buildDir.split('/').join('\\\\')
   const wd = (watcomDir || '').replace(/\\/g, '\\\\')
-  const watcomH   = wd ? wd + '\\\\H'      : '$(%WATCOM%)\\\\H'
-  const watcomLib = wd ? wd + '\\\\lib386' : '$(%WATCOM%)\\\\lib386'
+  const watcomH      = wd ? wd + '\\\\H'            : '$(%WATCOM%)\\\\H'
+  const watcomLib    = wd ? wd + '\\\\lib386'        : '$(%WATCOM%)\\\\lib386'
+  const watcomDosLib = wd ? wd + '\\\\lib386\\\\dos' : '$(%WATCOM%)\\\\lib386\\\\dos'
   const clibName = 'clib3r.lib'
+
+  // Detectar si wstubq.exe existe para usar formato inline (más robusto).
+  // Si no existe, usar 'system dos4gw' que requiere que WATCOM esté bien configurado.
+  const stubPath = watcomDir ? join(watcomDir, 'binw', 'wstubq.exe') : null
+  const hasStub  = stubPath && existsSync(stubPath)
+  const watcomStubEsc = hasStub ? stubPath.replace(/\\/g, '\\\\') : null
+
+  const linkLine = hasStub
+    ? `$(LD) format os2 le option osname='DOS/4GW' option stub=$(WATCOM_STUB) name GAME.EXE file main.obj,agemki_engine.obj,agemki_audio.obj,mididrv.obj,opl2.obj,opl3.obj,opl_patches.obj,mpu.obj,midi.obj,timer.obj,sb.obj libpath $(WATCOM_LIB) libpath $(WATCOM_DOSLIB) lib ${clibName}`
+    : `$(LD) system dos4gw name GAME.EXE file main.obj,agemki_engine.obj,agemki_audio.obj,mididrv.obj,opl2.obj,opl3.obj,opl_patches.obj,mpu.obj,midi.obj,timer.obj,sb.obj libpath $(WATCOM_LIB) libpath $(WATCOM_DOSLIB) lib ${clibName}`
+
+  const stubVarLine = hasStub ? `WATCOM_STUB   = ${watcomStubEsc}` : ''
 
   return `# Makefile generado por AGEMKI (ACHUS Game Engine Mark I)
 # Juego: ${gameId}
@@ -1705,7 +1718,9 @@ LD = wlink
 WATCOM_INC = ${watcomH}
 CFLAGS = ${flags} -bt=dos -i=$(WATCOM_INC)
 BUILDDIR = ${bd}
-WATCOM_LIB = ${watcomLib}
+WATCOM_LIB    = ${watcomLib}
+WATCOM_DOSLIB = ${watcomDosLib}
+${stubVarLine}
 
 OBJS = main.obj agemki_engine.obj agemki_audio.obj mididrv.obj opl2.obj opl3.obj opl_patches.obj mpu.obj midi.obj timer.obj sb.obj
 
@@ -1713,7 +1728,7 @@ OBJS = main.obj agemki_engine.obj agemki_audio.obj mididrv.obj opl2.obj opl3.obj
 \t$(CC) $(CFLAGS) -fo=$@ $<
 
 GAME.EXE: $(OBJS)
-\t$(LD) system dos4gw name GAME.EXE file main.obj,agemki_engine.obj,agemki_audio.obj,mididrv.obj,opl2.obj,opl3.obj,opl_patches.obj,mpu.obj,midi.obj,timer.obj,sb.obj libpath $(WATCOM_LIB) lib ${clibName}
+\t${linkLine}
 
 main.obj: main.c agemki_engine.h agemki_dat.h agemki_audio.h
 \t$(CC) $(CFLAGS) -fo=main.obj main.c
